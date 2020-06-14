@@ -278,8 +278,6 @@ export default class LogParser {
     }
 }
 
-LogParser.init();
-
 type MatchCallback = ((match: { [k: string]: any }) => void) | (() => void);
 
 export type Log = {

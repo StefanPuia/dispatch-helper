@@ -1,11 +1,19 @@
-div#case-cards {
-    width: 30000px;
-    grid-area: cases;
+div#case-cards-wrapper {
+    width: 100vw;
+    overflow-x: scroll;
     padding: 20px 0;
+    height: calc(var(--cases-height) + 20px);
+}
+
+div#case-cards {
+    width: auto;
+    grid-area: cases;
+    white-space: nowrap;
 }
 
 div.case-card {
-    margin-left: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
     font-size: 15px;
     width: 400px;
     height: var(--cases-height);

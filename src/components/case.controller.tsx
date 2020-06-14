@@ -15,7 +15,11 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
     private cases: Array<JSX.Element> = [];
 
     render() {
-        return <div id="case-cards">{this.renderCaseCards()}</div>;
+        return (
+            <div id="case-cards-wrapper">
+                <div id="case-cards">{this.renderCaseCards()}</div>
+            </div>
+        );
     }
 
     private renderCaseCards() {

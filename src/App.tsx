@@ -1,13 +1,13 @@
 import "./App.css";
-import "./core/hexchat.reader";
-import "./core/log.parser";
 
-import React from "react";
 import moment from "moment";
+import React from "react";
 
 import CaseController from "./components/case.controller";
 import Chat from "./components/chat";
 import { EventDispatcher } from "./core/event.dispatcher";
+import { HexchatReader } from "./core/hexchat.reader";
+import LogParser from "./core/log.parser";
 
 export interface AppProps {}
 
@@ -31,6 +31,9 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     componentDidMount() {
+        LogParser.init();
+        HexchatReader.init();
+
         EventDispatcher.listen("error.parse", async (data) => {
             console.error(data);
         });
@@ -42,6 +45,66 @@ class App extends React.Component<AppProps, AppState> {
         });
 
         const test: Array<[string, string]> = [
+            // [
+            //     "fuelrats",
+            //     "MechaSqueak[BOT] RATSIGNAL - CMDR client1" +
+            //         " - Reported System: CORE SYS SECTOR XJ-R A4-0 (40.44 LY from Sol)" +
+            //         " - Platform: PC - O2: OK - Language: English (en-GB) (Case #17) (PC_SIGNAL)",
+            // ],
+            // [
+            //     "fuelrats",
+            //     "MechaSqueak[BOT] RATSIGNAL - CMDR client1" +
+            //         " - Reported System: CORE SYS SECTOR XJ-R A4-0 (40.44 LY from Sol)" +
+            //         " - Platform: PC - O2: OK - Language: English (en-GB) (Case #17) (PC_SIGNAL)",
+            // ],
+            // [
+            //     "fuelrats",
+            //     "MechaSqueak[BOT] RATSIGNAL - CMDR client1" +
+            //         " - Reported System: CORE SYS SECTOR XJ-R A4-0 (40.44 LY from Sol)" +
+            //         " - Platform: PC - O2: OK - Language: English (en-GB) (Case #17) (PC_SIGNAL)",
+            // ],
+            // [
+            //     "fuelrats",
+            //     "MechaSqueak[BOT] RATSIGNAL - CMDR client1" +
+            //         " - Reported System: CORE SYS SECTOR XJ-R A4-0 (40.44 LY from Sol)" +
+            //         " - Platform: PC - O2: OK - Language: English (en-GB) (Case #17) (PC_SIGNAL)",
+            // ],
+            // [
+            //     "fuelrats",
+            //     "MechaSqueak[BOT] RATSIGNAL - CMDR client1" +
+            //         " - Reported System: CORE SYS SECTOR XJ-R A4-0 (40.44 LY from Sol)" +
+            //         " - Platform: PC - O2: OK - Language: English (en-GB) (Case #17) (PC_SIGNAL)",
+            // ],
+            // [
+            //     "fuelrats",
+            //     "MechaSqueak[BOT] RATSIGNAL - CMDR client1" +
+            //         " - Reported System: CORE SYS SECTOR XJ-R A4-0 (40.44 LY from Sol)" +
+            //         " - Platform: PC - O2: OK - Language: English (en-GB) (Case #17) (PC_SIGNAL)",
+            // ],
+            // [
+            //     "fuelrats",
+            //     "MechaSqueak[BOT] RATSIGNAL - CMDR client1" +
+            //         " - Reported System: CORE SYS SECTOR XJ-R A4-0 (40.44 LY from Sol)" +
+            //         " - Platform: PC - O2: OK - Language: English (en-GB) (Case #17) (PC_SIGNAL)",
+            // ],
+            // [
+            //     "fuelrats",
+            //     "MechaSqueak[BOT] RATSIGNAL - CMDR client1" +
+            //         " - Reported System: CORE SYS SECTOR XJ-R A4-0 (40.44 LY from Sol)" +
+            //         " - Platform: PC - O2: OK - Language: English (en-GB) (Case #17) (PC_SIGNAL)",
+            // ],
+            // [
+            //     "fuelrats",
+            //     "MechaSqueak[BOT] RATSIGNAL - CMDR client1" +
+            //         " - Reported System: CORE SYS SECTOR XJ-R A4-0 (40.44 LY from Sol)" +
+            //         " - Platform: PC - O2: OK - Language: English (en-GB) (Case #17) (PC_SIGNAL)",
+            // ],
+            // [
+            //     "fuelrats",
+            //     "MechaSqueak[BOT] RATSIGNAL - CMDR client1" +
+            //         " - Reported System: CORE SYS SECTOR XJ-R A4-0 (40.44 LY from Sol)" +
+            //         " - Platform: PC - O2: OK - Language: English (en-GB) (Case #17) (PC_SIGNAL)",
+            // ],
             // [
             //     "fuelrats",
             //     "MechaSqueak[BOT] RATSIGNAL - CMDR client1" +
@@ -82,6 +145,14 @@ class App extends React.Component<AppProps, AppState> {
             //     "fuelrats",
             //     "Velica_Foriana	Lxcky_7x: please open your navigation panel and select the first item from the list. Then try again",
             // ],
+            // ["error", "test"],
+            // ["error", "test"],
+            // ["error", "test"],
+            // ["error", "test"],
+            // ["error", "test"],
+            // ["error", "test"],
+            // ["error", "test"],
+            // ["error", "test"],
         ];
 
         EventDispatcher.queuePromises(

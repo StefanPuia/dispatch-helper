@@ -10,6 +10,7 @@ export interface ChatProps {}
 
 export interface ChatState {
     logs: Array<Log>;
+    ready: boolean;
 }
 
 class Chat extends React.Component<ChatProps, ChatState> {
@@ -18,12 +19,46 @@ class Chat extends React.Component<ChatProps, ChatState> {
 
     constructor(props: ChatProps) {
         super(props);
-        this.state = { logs: [] };
+        this.state = { logs: [], ready: false };
+
+        EventDispatcher.listen("hexchat", async (log: Log) => {
+            if (!Chat.users[log.user]) {
+                Chat.users[log.user] = {
+                    colour: this.randomColour(),
+                };
+            }
+            if (this.state.ready) {
+                this.setState(
+                    update(this.state, {
+                        logs: {
+                            $push: [log],
+                        },
+                    })
+                );
+            }
+        });
+
+        EventDispatcher.listen("error", async (errorText) => {
+            this.setState(
+                update(this.state, {
+                    logs: {
+                        $push: [
+                            {
+                                time: new Date(),
+                                text: `<span style="color: red">${errorText}</span>`,
+                                user: "SYSTEM",
+                                type: "event",
+                            },
+                        ],
+                    },
+                })
+            );
+        });
     }
 
     render() {
         return (
-            <div style={{ overflowY: "scroll", gridArea: "chat" }}>
+            <div id="chat" style={{ overflowY: "scroll", gridArea: "chat" }}>
                 <table className="chatLog">
                     <tbody>
                         {this.state.logs.slice(-1000).map((log) => this.renderLog(log))}
@@ -49,20 +84,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
     }
 
     componentDidMount() {
-        EventDispatcher.listen("hexchat", async (log: Log) => {
-            if (!Chat.users[log.user]) {
-                Chat.users[log.user] = {
-                    colour: this.randomColour(),
-                };
-            }
-            this.setState(
-                update(this.state, {
-                    logs: {
-                        $push: [log],
-                    },
-                })
-            );
-        });
+        this.setState({ ready: true });
     }
 
     componentDidUpdate() {
