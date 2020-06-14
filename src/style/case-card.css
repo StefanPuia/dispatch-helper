@@ -1,0 +1,130 @@
+div#case-cards {
+    width: 30000px;
+    grid-area: cases;
+    padding: 20px 0;
+}
+
+div.case-card {
+    margin-left: 20px;
+    font-size: 15px;
+    width: 400px;
+    height: var(--cases-height);
+    border: solid 1px black;
+    display: inline-grid;
+    padding: 0 15px;
+    grid-template-rows: 60px 100px 1fr;
+    grid-template-areas: "header""body""footer";
+}
+
+div.case-card.case-inactive {
+    opacity: 0.5;
+}
+
+div.case-card.case-closed {
+    border-color: green;
+}
+
+div.case-card.case-md {
+    border-color: red;
+}
+
+
+div.case-card.code-red {
+    background-color: rgba(136, 0, 0, 0.521);
+}
+
+div.case-card div.case-card-header {
+    font-size: 23px;
+    font-weight: bold;
+    display: grid;
+    grid-template-columns: 1fr 1em 3em;
+    grid-template-rows: repeat(2, 1fr);
+    padding: 5px 0;
+    grid-area: header;
+}
+
+div.case-card div.case-card-header div.case-number,
+div.case-card div.case-card-header div.case-time {
+    text-align: right;
+}
+
+div.case-card div.case-card-header div.case-time,
+div.case-card div.case-card-header div.case-system {
+    font-size: 13px;
+}
+
+div.case-card div.case-card-body {
+    grid-area: body;
+}
+
+div.case-card div.case-card-body div.rat-row {
+    display: grid;
+    grid-template-columns: 60% repeat(4, 1fr);
+    grid-gap: 2px;
+}
+
+div.case-card div.case-card-body div.rat-row div.rat-status-undefined {
+    display: none;
+}
+
+div.case-card div.case-card-body div.rat-row div.rat-status-true {
+    color: green;
+}
+
+div.case-card div.case-card-body div.rat-row div.rat-status-false {
+    color: red;
+}
+
+div.case-card div.case-card-footer {
+    grid-area: footer;
+    overflow: auto;
+    padding-bottom: 10px;
+}
+
+div.case-card div.case-card-footer div.chat-row {
+    /* width: 1000px; */
+}
+
+div.case-time {
+    text-align: right;
+}
+
+div.case-card div.case-card-header div.case-language:not(.language-EN) {
+    color: red;
+}
+
+div.case-card div.case-card-header div.case-number.platform-XB {
+    color: green;
+}
+
+div.case-card div.case-card-header div.case-number.platform-PS4 {
+    color: #3737ac;
+}
+
+div.case-card div.case-card-header div.case-number.platform-PC {
+    color: orange;
+}
+
+@keyframes animation-unread {
+    0% {
+        background-color: #00000000;
+    }
+
+    50% {
+        background-color: #00ff59ad;
+    }
+
+    100% {
+        background-color: #00000000;
+    }
+}
+
+div.case-card.case-unread,
+div.case-card.code-red.case-unread,
+div.case-card.case-inactive.case-unread,
+div.case-card.code-red.case-inactive.case-unread {
+    background-color: #00ff59ad;
+    /* animation-name: animation-unread; */
+    /* animation-duration: 2s; */
+    /* animation-iteration-count: infinite; */
+}
