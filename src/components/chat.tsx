@@ -99,7 +99,6 @@ EventDispatcher.listen("nickchange", async (data: NickChange) => {
         Chat.users[data.nick] = { ...Chat.users[data.raw.user] };
     }
 });
-console.log(Chat.users);
 
 type User = {
     colour: string;

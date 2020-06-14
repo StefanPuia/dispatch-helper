@@ -2,6 +2,7 @@ import { EventDispatcher } from "./event.dispatcher";
 
 export class HexchatReader {
     private static INSTANCE: HexchatReader;
+    private static PORT: number;
 
     private constructor() {
         let ws = this.openWS();
@@ -13,12 +14,18 @@ export class HexchatReader {
     }
 
     private openWS() {
-        const ws = new WebSocket("ws://localhost:6969", "echo-protocol");
+        while (!HexchatReader.PORT) {
+            try {
+                const port = window.prompt("Please enter your server port: ");
+                if (port) {
+                    HexchatReader.PORT = parseInt(port);
+                }
+            } catch (err) {}
+        }
+        const ws = new WebSocket(`ws://localhost:${HexchatReader.PORT}`, "echo-protocol");
         ws.onmessage = (evt: MessageEvent) => {
             const data: string = evt.data;
-            EventDispatcher.dispatch("fuelrats", this, data).catch(
-                console.error
-            );
+            EventDispatcher.dispatch("fuelrats", this, data).catch(console.error);
         };
         return ws;
     }

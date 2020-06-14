@@ -1,61 +1,44 @@
-const WebSocketServer = require("websocket").server;
+/* eslint-disable no-loop-func */
 const http = require("http");
-const Tail = require("tail").Tail;
-const path = require("path");
+const readline = require("readline");
 
-const connections = [];
-const server = http.createServer(function (request, response) {
-    console.log(new Date() + " Received request for " + request.url);
-    response.writeHead(404);
-    response.end();
-});
-server.listen(6969, function () {
-    console.log(new Date() + " Server is listening on port 6969");
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
 });
 
-const wsServer = new WebSocketServer({
-    httpServer: server,
-    autoAcceptConnections: false,
-});
-
-wsServer.on("request", function (request) {
-    const connection = request.accept("echo-protocol", request.origin);
-    console.log(new Date() + " Connection accepted.");
-    connections.push(connection);
-    connection.on("close", function (reasonCode, description) {
-        const index = connections.indexOf(connection);
-        if (index > -1) {
-            connections.splice(index, 1);
-        }
-        console.log(
-            new Date() + " Peer " + connection.remoteAddress + " disconnected."
-        );
+function askForPort() {
+    return new Promise((resolve, reject) => {
+        rl.question("Please enter a port number (1000-65535):\n", (answer) => {
+            try {
+                let port = parseInt(answer);
+                if (port > 65535 && port < 1000) {
+                    throw new Error(``);
+                }
+                resolve(port);
+            } catch (err) {
+                console.log("Port number not valid");
+                resolve(false);
+            }
+        });
     });
-});
-
-try {
-    const tail = new Tail(
-        path.join(
-            require("os").homedir(),
-            "AppData\\Roaming\\HexChat\\logs\\FuelRats\\#fuelrats.log"
-        ), {
-            fromBeginning: false,
-        }
-    );
-    tail.on("error", console.error);
-    tail.on("line", (data) => {
-        sendToClients(data);
-    });
-} catch (err) {
-    console.error(err);
 }
 
-function sendToClients(data) {
-    for (const conn of connections) {
-        try {
-            conn.send(data);
-        } catch (err) {
-            console.error(err);
-        }
+(async () => {
+    let port = false;
+    while (!port) {
+        port = await askForPort();
     }
-}
+
+    const server = http.createServer((response) => {
+        response.writeHead(404);
+        response.end();
+    });
+
+    server.listen(port, function () {
+        console.log(new Date() + " Server is listening on port 6969");
+
+        require("./wsserver").init(server);
+        require("./watcher")(rl);
+    });
+})();

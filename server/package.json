@@ -1,16 +1,17 @@
 {
-  "name": "hexchat-reader",
-  "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "tail": "^2.0.3",
-    "websocket": "^1.0.31"
-  }
+    "name": "hexchat-reader",
+    "version": "1.0.0",
+    "description": "",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "build": "pkg . -o ./build/dispatch-server"
+    },
+    "bin": "server.js",
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "tail": "^2.0.3",
+        "websocket": "^1.0.31"
+    }
 }
