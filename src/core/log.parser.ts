@@ -206,7 +206,7 @@ export default class LogParser {
             } as BaseMessage);
         });
 
-        this.onMatch(message, "nickchange", (m) => {
+        this.onMatch(message, "nickChange", (m) => {
             parsed = true;
             EventDispatcher.dispatch(`nickchange`, this, {
                 ...baseMessage,
