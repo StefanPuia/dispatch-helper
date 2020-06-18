@@ -6,6 +6,7 @@ import { EventDispatcher } from "../core/event.dispatcher";
 import { Callout, CalloutJumps, BaseMessage, CaseAssign, Log, NickChange } from "../core/log.parser";
 import Utils from "../core/utils";
 import Chat from "./chat";
+import App from "../App";
 
 export interface CaseCardProps {
     id: number;
@@ -114,18 +115,16 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                     <div className="case-time">{this.state.duration}</div>
                 </div>
                 <div className="case-card-body">{this.renderRats()}</div>
-                <div className="case-card-footer">
-                    <div className="chat" ref={(el) => (this.chatLines = el)}>
-                        {this.renderChatMessages()}
-                    </div>
+                <div className="case-card-footer" ref={(el) => (this.chatLines = el)}>
+                    <div className="chat">{this.renderChatMessages()}</div>
                 </div>
             </div>
         );
     }
 
     componentDidUpdate() {
-        if (this.chatLines) {
-            this.chatLines.scrollTo(0, this.chatLines.getBoundingClientRect().height);
+        if (this.chatLines && App.isFocused) {
+            this.chatLines.scrollTo(0, this.state.messages.length * 25);
         }
     }
 

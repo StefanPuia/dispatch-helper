@@ -5,6 +5,7 @@ import { EventDispatcher } from "../core/event.dispatcher";
 import { Log, NickChange } from "../core/log.parser";
 import Utils from "../core/utils";
 import update from "immutability-helper";
+import App from "../App";
 
 export interface ChatProps {}
 
@@ -15,7 +16,7 @@ export interface ChatState {
 
 class Chat extends React.Component<ChatProps, ChatState> {
     public static users: { [name: string]: User } = {};
-    private chatLogEnd: HTMLTableRowElement | null = null;
+    private chatLog: HTMLDivElement | null = null;
 
     constructor(props: ChatProps) {
         super(props);
@@ -58,15 +59,17 @@ class Chat extends React.Component<ChatProps, ChatState> {
 
     render() {
         return (
-            <div id="chat" style={{ overflowY: "scroll", gridArea: "chat" }}>
+            <div
+                id="chat"
+                style={{ overflowY: "scroll", gridArea: "chat" }}
+                ref={(el) => {
+                    this.chatLog = el;
+                }}
+            >
                 <table className="chatLog">
                     <tbody>
                         {this.state.logs.slice(-1000).map((log) => this.renderLog(log))}
-                        <tr
-                            ref={(el) => {
-                                this.chatLogEnd = el;
-                            }}
-                        ></tr>
+                        <tr></tr>
                     </tbody>
                 </table>
             </div>
@@ -88,8 +91,8 @@ class Chat extends React.Component<ChatProps, ChatState> {
     }
 
     componentDidUpdate() {
-        if (this.chatLogEnd) {
-            this.chatLogEnd.scrollIntoView({ behavior: "smooth" });
+        if (this.chatLog && App.isFocused) {
+            this.chatLog.scrollTo(0, this.state.logs.length * 35);
         }
     }
 
