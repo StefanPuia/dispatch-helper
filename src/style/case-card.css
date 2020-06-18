@@ -36,7 +36,6 @@ div.case-card.case-md {
     border-color: red;
 }
 
-
 div.case-card.code-red {
     background-color: rgba(136, 0, 0, 0.521);
 }
@@ -87,6 +86,7 @@ div.case-card div.case-card-footer {
     grid-area: footer;
     overflow: auto;
     padding-bottom: 10px;
+    white-space: normal;
 }
 
 div.case-card div.case-card-footer div.chat-row {
@@ -131,7 +131,7 @@ div.case-card.case-unread,
 div.case-card.code-red.case-unread,
 div.case-card.case-inactive.case-unread,
 div.case-card.code-red.case-inactive.case-unread {
-    background-color: #00ff59ad;
+    background-color: #003d15ab;
     /* animation-name: animation-unread; */
     /* animation-duration: 2s; */
     /* animation-iteration-count: infinite; */
