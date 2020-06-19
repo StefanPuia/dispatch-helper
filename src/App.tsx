@@ -6,7 +6,7 @@ import React from "react";
 import CaseController from "./components/case.controller";
 import Chat from "./components/chat";
 import { EventDispatcher } from "./core/event.dispatcher";
-import { HexchatReader } from "./core/hexchat.reader";
+import { IRCReader } from "./core/irc.reader";
 import LogParser from "./core/log.parser";
 
 export interface AppProps {}
@@ -48,7 +48,7 @@ class App extends React.Component<AppProps, AppState> {
         window.addEventListener("focus", this.handleFocus(true));
         window.addEventListener("blur", this.handleFocus(false));
         LogParser.init();
-        HexchatReader.init();
+        IRCReader.init();
 
         EventDispatcher.listen("error.parse", async (data) => {
             console.error(data);

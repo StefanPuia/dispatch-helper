@@ -24,8 +24,8 @@ export default class LogParser {
             "i"
         ),
         closed: /!(?:close|clear)\s+(?<case>\d+)(?:\s+(?<rat>.+))?/i,
-        disconnect: /has quit \(.+\)/i,
-        connect: /\(.+?\) has joined/i,
+        // disconnect: /has quit \(.+\)/i,
+        // connect: /\(.+?\) has joined/i,
         assign: /!(?:go|assign)\s+(?<case>\d+)\s+(?<rats>.+)/i,
         unassign: /!unassign\s+(?<case>\d+)\s+(?<rats>.+)/i,
         active: /!(?:in)?active\s+(?<case>\d+)/i,
@@ -34,35 +34,78 @@ export default class LogParser {
         sysconf: /#?(?<case>\d+).*?(?:sysconf|system confirmed)/i,
         sysconfRev: /(?:sysconf|system confirmed).*?#?(?<case>\d+)/i,
         sys: /!sys\s+(?<case>\d+)\s+(?<system>.+)/i,
-        grab: /(?:#|case)\s*(?<case>\d+)/i,
-        nickChange: /is now known as (?<newnick>.+)/i,
+        intelliGrab: /(?:#|case)\s*(?<case>\d+)/i,
+        // eslint-disable-next-line no-control-regex
+        ircAction: /^\x01ACTION (.+)\x01$/,
+        // nickChange: /is now known as (?<newnick>.+)/i,
     };
 
     private constructor() {
-        this.handleHexChat = this.handleHexChat.bind(this);
+        this.parseIrcMessage = this.parseIrcMessage.bind(this);
+        this.handleIncoming = this.handleIncoming.bind(this);
 
-        EventDispatcher.listen("fuelrats", this.parseLog);
-        EventDispatcher.listen("hexchat", this.handleHexChat);
+        EventDispatcher.listen("irc.incoming", this.handleIncoming);
+        EventDispatcher.listen("irc.message", this.parseIrcMessage);
     }
 
-    private async parseLog(_line: string) {
-        const line = (_line || "").trim();
-        if (!line) return;
-        const match = line.match(/^(\d+-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})\s(\*\s)?<?(\S+?)>?\s(.+)$/);
-        if (!match) {
-            EventDispatcher.dispatch("error.parse", this, line);
-        } else {
-            const message: Log = {
-                time: new Date(match[1]),
-                type: match[2] ? "event" : "message",
-                user: match[3],
-                text: match[4],
-            };
-            EventDispatcher.dispatch("hexchat", this, message);
+    private async handleIncoming(raw: IncomingLog) {
+        const { command, nick, args } = raw;
+        const message: Log = {
+            time: new Date(),
+            type: command === "PRIVMSG" ? "message" : "event",
+            user: nick || "_",
+            text: "",
+            channel: command === "PRIVMSG" ? args[0] : undefined,
+        };
+
+        const baseMessage: BaseMessage = {
+            raw: message,
+            id: -1,
+            time: message.time,
+        };
+
+        switch (command) {
+            case "JOIN":
+                message.text = "has connected.";
+                EventDispatcher.dispatch(`case.connect`, this, {
+                    ...baseMessage,
+                    nick: nick,
+                });
+                break;
+
+            case "PART":
+            case "QUIT":
+                message.text = "has disconnected.";
+                EventDispatcher.dispatch(`case.disconnect`, this, {
+                    ...baseMessage,
+                    nick: nick,
+                });
+                break;
+
+            case "NICK":
+                message.text = `is now known as ${args[0]}`;
+                EventDispatcher.dispatch(`nickchange`, this, {
+                    ...baseMessage,
+                    nick: args[1],
+                });
+                break;
+
+            case "PRIVMSG":
+                message.text = args[1];
+                const isAction = message.text.match(LogParser.REGEX.ircAction);
+                if (isAction) {
+                    message.type = "event";
+                    message.text = isAction[1];
+                }
+                EventDispatcher.dispatch("irc.message", this, message);
+                break;
+
+            default:
+                return;
         }
     }
 
-    private async handleHexChat(message: Log) {
+    private async parseIrcMessage(message: Log) {
         const baseMessage: BaseMessage = {
             raw: message,
             time: message.time,
@@ -124,19 +167,19 @@ export default class LogParser {
             } as BaseMessage);
         });
 
-        this.onMatch(message, "connect", (m) => {
-            parsed = true;
-            EventDispatcher.dispatch(`case.connect`, this, {
-                ...baseMessage,
-            } as BaseMessage);
-        });
+        // this.onMatch(message, "connect", (m) => {
+        //     parsed = true;
+        //     EventDispatcher.dispatch(`case.connect`, this, {
+        //         ...baseMessage,
+        //     } as BaseMessage);
+        // });
 
-        this.onMatch(message, "disconnect", (m) => {
-            parsed = true;
-            EventDispatcher.dispatch(`case.disconnect`, this, {
-                ...baseMessage,
-            } as BaseMessage);
-        });
+        // this.onMatch(message, "disconnect", (m) => {
+        //     parsed = true;
+        //     EventDispatcher.dispatch(`case.disconnect`, this, {
+        //         ...baseMessage,
+        //     } as BaseMessage);
+        // });
 
         this.onMatch(message, "assign", (m) => {
             parsed = true;
@@ -206,13 +249,13 @@ export default class LogParser {
             } as BaseMessage);
         });
 
-        this.onMatch(message, "nickChange", (m) => {
-            parsed = true;
-            EventDispatcher.dispatch(`nickchange`, this, {
-                ...baseMessage,
-                nick: m.newnick,
-            });
-        });
+        // this.onMatch(message, "nickChange", (m) => {
+        //     parsed = true;
+        //     EventDispatcher.dispatch(`nickchange`, this, {
+        //         ...baseMessage,
+        //         nick: m.newnick,
+        //     });
+        // });
 
         if (message.user === "MechaSqueak[BOT]") {
             this.onMatch(message, "ratsignal", (m) => {
@@ -232,16 +275,16 @@ export default class LogParser {
         }
 
         if (!parsed) {
-            this.onMatch(message, "grab", (m) => {
+            this.onMatch(message, "intelliGrab", (m) => {
                 parsed = true;
-                EventDispatcher.dispatch(`case.grab`, this, {
+                EventDispatcher.dispatch(`case.intelligrab`, this, {
                     ...baseMessage,
                     id: parseInt(m.case),
                 });
             });
 
             if (!parsed) {
-                EventDispatcher.dispatch(`hexchat.unparsed`, this, message);
+                EventDispatcher.dispatch(`irc.unparsed`, this, message);
             }
         }
     }
@@ -280,11 +323,24 @@ export default class LogParser {
 
 type MatchCallback = ((match: { [k: string]: any }) => void) | (() => void);
 
+type IncomingLog = {
+    prefix?: string;
+    nick?: string;
+    user?: string;
+    host?: string;
+    server: string;
+    rawCommand: string;
+    command: string;
+    commandType: "normal" | "error" | "reply";
+    args: Array<string>;
+};
+
 export type Log = {
     time: Date;
     user: string;
     type: "message" | "event";
     text: string;
+    channel?: string;
 };
 
 export interface BaseMessage {

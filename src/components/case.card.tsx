@@ -382,8 +382,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             ["case.cr", this.changeState("cr")],
             ["case.sysconf", this.changeState("sysconf", true)],
             ["case.sys", this.changeState("system", undefined, true, "sys")],
-            ["case.grab", this.grabChat()],
-            ["hexchat.unparsed", this.grabClientMessages()],
+            ["case.intelligrab", this.grabChat()],
+            ["irc.unparsed", this.grabClientMessages()],
             ["nickchange", this.handleNickChange()],
         ];
     }

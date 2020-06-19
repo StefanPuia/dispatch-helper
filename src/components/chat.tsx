@@ -22,7 +22,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
         super(props);
         this.state = { logs: [], ready: false };
 
-        EventDispatcher.listen("hexchat", async (log: Log) => {
+        EventDispatcher.listen("irc.message", async (log: Log) => {
             if (!Chat.users[log.user]) {
                 Chat.users[log.user] = {
                     colour: this.randomColour(),
@@ -80,10 +80,17 @@ class Chat extends React.Component<ChatProps, ChatState> {
         return (
             <tr key={Utils.getUniqueKey("chat-log")}>
                 <td>{moment(log.time).format("HH:mm:ss")}</td>
-                <td style={{ color: Chat.users[log.user]?.colour, fontWeight: "bold" }}>{log.user}</td>
+                <td style={{ color: Chat.users[log.user]?.colour, fontWeight: "bold" }}>
+                    {log.user}
+                    {this.isMainChannel(log)}
+                </td>
                 <td>{Chat.formatChatText(log.text)}</td>
             </tr>
         );
+    }
+
+    private isMainChannel(log: Log) {
+        return typeof log.channel !== "undefined" && log.channel !== "#fuelrats" ? " *" : "";
     }
 
     componentDidMount() {

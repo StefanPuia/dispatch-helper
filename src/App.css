@@ -12,13 +12,19 @@ body {
         sans-serif;
 }
 
+a,
+a:visited,
+a:hover {
+    color: #eba91c;
+}
+
 #root>div#chat {
     position: fixed;
     left: 0;
-    right: -20px;
+    right: 0;
     top: 65vh;
     bottom: 0;
-    padding: 0 0 10px 20px;
+    padding: 0 0 10px 0;
     background-color: #0f0f0f;
 }
 
