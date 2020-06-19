@@ -1,6 +1,5 @@
 import "./App.css";
 
-import moment from "moment";
 import React from "react";
 
 import CaseController from "./components/case.controller";
@@ -8,6 +7,7 @@ import Chat from "./components/chat";
 import { EventDispatcher } from "./core/event.dispatcher";
 import { IRCReader } from "./core/irc.reader";
 import LogParser from "./core/log.parser";
+import Utils from "./core/utils";
 
 export interface AppProps {}
 
@@ -17,11 +17,19 @@ export interface AppState {
 
 class App extends React.Component<AppProps, AppState> {
     public static isFocused: boolean = true;
+    public static visibility: any = {
+        hidden: null,
+        handle: null,
+    };
 
     constructor(props: AppProps) {
         super(props);
         this.state = { logs: [] };
         this.handleFocus = this.handleFocus.bind(this);
+
+        const { hidden, visibilityChange } = Utils.getVisibilityChangeByBrowser();
+        App.visibility.hidden = hidden;
+        App.visibility.handle = visibilityChange;
     }
 
     render() {
@@ -33,20 +41,16 @@ class App extends React.Component<AppProps, AppState> {
         );
     }
 
-    private handleFocus(focus: boolean) {
-        return (e: any) => {
-            App.isFocused = focus;
-        };
+    private handleFocus() {
+        App.isFocused = !document[App.visibility.hidden as "hidden"];
     }
 
     componentWilUnmount() {
-        window.addEventListener("focus", this.handleFocus(true));
-        window.removeEventListener("blur", this.handleFocus(false));
+        document.removeEventListener(App.visibility.handle, this.handleFocus);
     }
 
     componentDidMount() {
-        window.addEventListener("focus", this.handleFocus(true));
-        window.addEventListener("blur", this.handleFocus(false));
+        document.addEventListener(App.visibility.handle, this.handleFocus, false);
         LogParser.init();
         IRCReader.init();
 
