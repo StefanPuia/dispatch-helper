@@ -5,8 +5,12 @@ const wsServer = require("./wsserver");
 
 const init = async () => {
     const server = http.createServer((response) => {
-        response.writeHead(404);
-        response.end();
+        try {
+            response.writeHead(404);
+            response.end();
+        } catch (err) {
+            console.error(err);
+        }
     });
 
     server.listen(config["disptach-port"], function () {
