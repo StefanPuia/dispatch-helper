@@ -2,7 +2,6 @@ import { EventDispatcher } from "./event.dispatcher";
 
 export class IRCReader {
     private static INSTANCE: IRCReader;
-    private static PORT: number = 45362;
     private static WEBSOCKET: WebSocket;
 
     private constructor() {
@@ -10,7 +9,7 @@ export class IRCReader {
     }
 
     private static connectWS() {
-        IRCReader.WEBSOCKET = new WebSocket(`ws://stefanpuia.co.uk:${IRCReader.PORT}`, "echo-protocol");
+        IRCReader.WEBSOCKET = new WebSocket(`wss://dispatchws.stefanpuia.co.uk/`, "echo-protocol");
         IRCReader.WEBSOCKET.onmessage = (evt: MessageEvent) => {
             try {
                 const data: string = JSON.parse(evt.data);
