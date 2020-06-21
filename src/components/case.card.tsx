@@ -36,6 +36,7 @@ export interface CaseCardState {
 
 interface CaseRatState {
     assigned: boolean;
+    jumps?: number;
     state: {
         fr?: boolean;
         wr?: boolean;
@@ -136,7 +137,10 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         return Object.keys(this.state.rats).map((ratName: string) => {
             return (
                 <div className="rat-row" key={Utils.getUniqueKey("rat-row")}>
-                    <div className="rat-name">{this.renderRatName(ratName)}</div>
+                    <div className="rat-name">
+                        {this.renderRatName(ratName)}
+                        {this.renderRatJumps(ratName)}
+                    </div>
                     {Object.keys(this.state.rats[ratName].state).map((status: string) => {
                         return (
                             <div
@@ -150,6 +154,11 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                 </div>
             );
         });
+    }
+
+    private renderRatJumps(rat: string) {
+        const { jumps, assigned } = this.state.rats[rat];
+        return jumps && !assigned ? ` - ${jumps}j` : "";
     }
 
     private renderRatName(rat: string) {
@@ -195,6 +204,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private async handleJumpCall(data: CalloutJumps) {
         const rats = this.state.rats;
+        if (data.rat === this.state.nick) return;
+        // if not this case, unassign rat
         if (data.id !== this.props.id) {
             if (rats[data.rat]) {
                 delete rats[data.rat];
@@ -208,6 +219,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             if (!rats[data.rat]) {
                 rats[data.rat] = {
                     assigned: false,
+                    jumps: data.jumps,
                     state: {},
                 };
                 this.setState(
@@ -221,7 +233,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private setRatStatus(prop: RatState, value: boolean) {
         return async (data: Callout) => {
-            if (data.id !== this.props.id) return;
+            if (data.id !== this.props.id || data.rat === this.state.nick) return;
             const rats = this.state.rats;
             if (!this.state.rats[data.rat]) {
                 rats[data.rat] = {
@@ -259,13 +271,15 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             if (data.id !== this.props.id) return;
             const rats = this.state.rats;
             for (const rat of data.rats) {
-                if (!rats[rat]) {
-                    rats[rat] = {
-                        assigned: assign,
-                        state: {},
-                    };
-                } else {
-                    rats[rat].assigned = assign;
+                if (rat !== this.state.nick) {
+                    if (!rats[rat]) {
+                        rats[rat] = {
+                            assigned: assign,
+                            state: {},
+                        };
+                    } else {
+                        rats[rat].assigned = assign;
+                    }
                 }
             }
             this.setState(
@@ -277,7 +291,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private async handleStandDown(data: Callout) {
-        if (data.id && data.id !== this.props.id) return;
+        if ((data.id && data.id !== this.props.id) || data.rat === this.state.nick) return;
         const rats = this.state.rats;
         if (!rats[data.rat]) return;
         delete rats[data.rat];
@@ -393,7 +407,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             ["case.sysconf", this.changeState("sysconf", true)],
             ["case.sys", this.changeState("system", undefined, true, "sys")],
             ["case.intelligrab", this.grabChat()],
-            ["irc.unparsed", this.grabClientMessages()],
+            ["irc.message", this.grabClientMessages()],
             ["nickchange", this.handleNickChange()],
         ];
     }
