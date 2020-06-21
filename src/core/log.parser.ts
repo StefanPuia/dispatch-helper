@@ -86,7 +86,7 @@ export default class LogParser {
                 message.text = `is now known as ${args[0]}`;
                 EventDispatcher.dispatch(`nickchange`, this, {
                     ...baseMessage,
-                    nick: args[1],
+                    nick: args[0],
                 });
                 break;
 

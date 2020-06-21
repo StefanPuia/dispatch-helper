@@ -55,6 +55,21 @@ class Chat extends React.Component<ChatProps, ChatState> {
                 })
             );
         });
+
+        EventDispatcher.listen("nickchange", async (data: NickChange) => {
+            if (Chat.users[data.raw.user]) {
+                Chat.users[data.nick] = { ...Chat.users[data.raw.user] };
+            }
+            if (this.state.ready) {
+                this.setState(
+                    update(this.state, {
+                        logs: {
+                            $push: [data.raw],
+                        },
+                    })
+                );
+            }
+        });
     }
 
     render() {
@@ -125,12 +140,6 @@ class Chat extends React.Component<ChatProps, ChatState> {
 }
 
 export default Chat;
-
-EventDispatcher.listen("nickchange", async (data: NickChange) => {
-    if (Chat.users[data.raw.user]) {
-        Chat.users[data.nick] = { ...Chat.users[data.raw.user] };
-    }
-});
 
 type User = {
     colour: string;

@@ -194,18 +194,28 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private async handleJumpCall(data: CalloutJumps) {
-        if (data.id !== this.props.id) return;
         const rats = this.state.rats;
-        if (!rats[data.rat]) {
-            rats[data.rat] = {
-                assigned: false,
-                state: {},
-            };
-            this.setState(
-                update(this.state, {
-                    rats: { $set: rats },
-                })
-            );
+        if (data.id !== this.props.id) {
+            if (rats[data.rat]) {
+                delete rats[data.rat];
+                this.setState(
+                    update(this.state, {
+                        rats: { $set: rats },
+                    })
+                );
+            }
+        } else {
+            if (!rats[data.rat]) {
+                rats[data.rat] = {
+                    assigned: false,
+                    state: {},
+                };
+                this.setState(
+                    update(this.state, {
+                        rats: { $set: rats },
+                    })
+                );
+            }
         }
     }
 
@@ -346,7 +356,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     private handleNickChange() {
         return async (data: NickChange) => {
             if (this.state.nick === data.raw.user) {
-                return this.setState({ nick: data.nick });
+                this.setState({ nick: data.nick });
             }
             const rat = Object.keys(this.state.rats).find((rat) => rat === data.raw.user);
             if (rat) {

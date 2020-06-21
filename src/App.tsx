@@ -51,6 +51,18 @@ class App extends React.Component<AppProps, AppState> {
 
     componentDidMount() {
         document.addEventListener(App.visibility.handle, this.handleFocus, false);
+
+        window.onbeforeunload = function (e: any) {
+            e = e || window.event;
+            const confirm = "Are you sure you want to exit?";
+            // For IE and Firefox prior to version 4
+            if (e) {
+                e.returnValue = confirm;
+            }
+            // For Safari
+            return confirm;
+        };
+
         LogParser.init();
         IRCReader.init();
 
