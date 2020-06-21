@@ -61,3 +61,9 @@ div#errors div.error {
     padding: 5px;
     color: red;
 }
+
+a#bugreport {
+    position: absolute;
+    bottom: 10px;
+    right: 30px;
+}

@@ -37,6 +37,14 @@ class App extends React.Component<AppProps, AppState> {
             <>
                 <Chat />
                 <CaseController />
+                <a
+                    id="bugreport"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href="https://github.com/StefanPuia/fuelrats-dispatch-helper/issues"
+                >
+                    Bugs/Feedback
+                </a>
             </>
         );
     }

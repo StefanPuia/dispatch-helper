@@ -345,12 +345,15 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private grabClientMessages() {
         return async (data: Log) => {
-            if (
-                (data.user === this.state.nick ||
-                    Object.keys(this.state.rats).indexOf(data.user) > -1 ||
-                    data.text.indexOf(this.state.nick) > -1) &&
-                data.user !== "MechaSqueak[BOT]"
-            ) {
+            const isClient = data.user === this.state.nick;
+            const isAssignedRat =
+                Object.keys(this.state.rats)
+                    .filter((rat) => this.state.rats[rat].assigned)
+                    .indexOf(data.user) > -1;
+            const containsClientName = data.text.indexOf(this.state.nick) > -1;
+            const isMechaSqueak = data.user === "MechaSqueak[BOT]";
+            console.log(data.text, isClient, isAssignedRat, containsClientName, isMechaSqueak);
+            if (!isMechaSqueak && (isClient || isAssignedRat || containsClientName)) {
                 this.setState(
                     update(this.state, {
                         messages: {
