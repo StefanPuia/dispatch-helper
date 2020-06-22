@@ -66,7 +66,6 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.handleCaseAssign = this.handleCaseAssign.bind(this);
         this.handleStandDown = this.handleStandDown.bind(this);
         this.closeCase = this.closeCase.bind(this);
-        this.setRead = this.setRead.bind(this);
     }
 
     render() {
@@ -78,7 +77,11 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                     (this.state.cr ? " code-red" : "") +
                     (this.state.unread ? " case-unread" : "")
                 }
-                onClick={this.setRead}
+                onClick={(e: React.MouseEvent) => {
+                    if (this.state.unread) {
+                        this.setState({ unread: false });
+                    }
+                }}
                 ref={(el) => (this.container = el)}
             >
                 <div className="case-card-header">
@@ -165,12 +168,6 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private getStatusOverride(rat: string, _status: string) {
         return `rat-status-${this.state.rats[rat].state[_status as RatState]}`;
-    }
-
-    private setRead(e: React.MouseEvent) {
-        if (this.container) {
-            this.container.classList.remove("case-unread");
-        }
     }
 
     private closeCase() {
