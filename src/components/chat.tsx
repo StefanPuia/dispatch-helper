@@ -15,19 +15,15 @@ export interface ChatState {
 }
 
 class Chat extends React.Component<ChatProps, ChatState> {
-    public static users: { [name: string]: User } = {};
+    public static users: { [name: string]: string } = {};
     private chatLog: HTMLDivElement | null = null;
+    private chat: HTMLDivElement | null = null;
 
     constructor(props: ChatProps) {
         super(props);
         this.state = { logs: [], ready: false };
 
         EventDispatcher.listen("irc.message", async (log: Log) => {
-            if (!Chat.users[log.user]) {
-                Chat.users[log.user] = {
-                    colour: this.randomColour(),
-                };
-            }
             if (this.state.ready) {
                 this.setState(
                     update(this.state, {
@@ -59,7 +55,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
 
         EventDispatcher.listen("nickchange", async (data: NickChange) => {
             if (Chat.users[data.raw.user]) {
-                Chat.users[data.nick] = { ...Chat.users[data.raw.user] };
+                Chat.users[data.nick] = Chat.getNickColour(data.raw.user);
             }
             if (this.state.ready) {
                 this.setState(
@@ -82,7 +78,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
                     this.chatLog = el;
                 }}
             >
-                <table className="chatLog">
+                <table className="chatLog" ref={(el) => (this.chat = el)}>
                     <tbody>
                         {this.state.logs.slice(-1000).map((log) => this.renderLog(log))}
                         <tr></tr>
@@ -96,7 +92,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
         return (
             <tr key={Utils.getUniqueKey("chat-log")}>
                 <td>{moment(log.time).format("HH:mm:ss")}</td>
-                <td style={{ color: Chat.users[log.user]?.colour, fontWeight: "bold" }}>
+                <td style={{ color: Chat.getNickColour(log.user), fontWeight: "bold" }}>
                     {log.user}
                     {this.isMainChannel(log)}
                 </td>
@@ -114,8 +110,8 @@ class Chat extends React.Component<ChatProps, ChatState> {
     }
 
     componentDidUpdate() {
-        if (this.chatLog && App.isFocused) {
-            this.chatLog.scrollTo(0, this.state.logs.length * 35);
+        if (this.chatLog && this.chat && App.isFocused) {
+            this.chatLog.scrollTo(0, this.chat.getBoundingClientRect().height + 1000);
         }
     }
 
@@ -124,18 +120,25 @@ class Chat extends React.Component<ChatProps, ChatState> {
             const escaped = user.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
             text = text.replace(
                 new RegExp(`([ ,:>]|^)${escaped}([< ,:]|$)`, "g"),
-                `$1<span style="color: ${Chat.users[user].colour}; font-weight: bold">${user}</span>$2`
+                `$1<span style="color: ${Chat.getNickColour(user)}; font-weight: bold">${user}</span>$2`
             );
         }
         text = text.replace(/(https?:\/\/\S+)/g, `<a href="$1" target="_blank">$1</a>`);
         return <span dangerouslySetInnerHTML={{ __html: text }}></span>;
     }
 
-    private randomColour() {
-        return `rgb(${randomRGB()},${randomRGB()},${randomRGB()})`;
+    public static getNickColour(nick: string) {
+        if (!Chat.users[nick]) {
+            Chat.users[nick] = Chat.randomColour();
+        }
+        return Chat.users[nick];
+    }
 
+    private static randomColour() {
+        return `rgb(${randomRGB()},${randomRGB()},${randomRGB()})`;
         function randomRGB() {
-            return Math.floor(Math.random() * 232) + 25;
+            const min = 70;
+            return Math.floor(Math.random() * (256 - min)) + min;
         }
     }
 }

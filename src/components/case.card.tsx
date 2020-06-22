@@ -51,6 +51,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     private interval: NodeJS.Timeout | undefined;
     private firstRat: string = "";
     private chatLines: HTMLDivElement | null = null;
+    private chat: HTMLDivElement | null = null;
 
     constructor(props: CaseCardProps) {
         super(props);
@@ -95,7 +96,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                                       color: "red",
                                       textDecoration: "underline",
                                   }
-                                : { color: Chat.users[this.state.nick]?.colour }
+                                : { color: Chat.getNickColour(this.state.nick) }
                         }
                     >
                         {this.state.nick}
@@ -117,15 +118,17 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                 </div>
                 <div className="case-card-body">{this.renderRats()}</div>
                 <div className="case-card-footer" ref={(el) => (this.chatLines = el)}>
-                    <div className="chat">{this.renderChatMessages()}</div>
+                    <div className="chat" ref={(el) => (this.chat = el)}>
+                        {this.renderChatMessages()}
+                    </div>
                 </div>
             </div>
         );
     }
 
     componentDidUpdate() {
-        if (this.chatLines && App.isFocused) {
-            this.chatLines.scrollTo(0, this.state.messages.length * 25);
+        if (this.chatLines && this.chat && App.isFocused) {
+            this.chatLines.scrollTo(0, this.chat.getBoundingClientRect().height + 1000);
         }
     }
 
@@ -447,9 +450,9 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     componentDidMount() {
-        this.interval = setInterval(() => {
-            this.setState({ duration: this.calculateDuration() });
-        }, 1000);
+        // this.interval = setInterval(() => {
+        //     this.setState({ duration: this.calculateDuration() });
+        // }, 1000);
 
         for (const handler of this.getEventHandlers()) {
             EventDispatcher.listen(handler[0], handler[1]);
