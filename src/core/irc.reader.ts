@@ -1,4 +1,5 @@
 import { EventDispatcher } from "./event.dispatcher";
+import sha256 from "sha256";
 
 export class IRCReader {
     private static INSTANCE: IRCReader;
@@ -12,7 +13,8 @@ export class IRCReader {
         IRCReader.WEBSOCKET = new WebSocket(`wss://dispatchws.stefanpuia.co.uk/`, "echo-protocol");
         IRCReader.WEBSOCKET.onmessage = (evt: MessageEvent) => {
             try {
-                const data: string = JSON.parse(evt.data);
+                const data: any = JSON.parse(evt.data);
+                data.uid = sha256(evt.data);
                 EventDispatcher.dispatch("irc.incoming", this, data).catch(console.error);
             } catch (err) {
                 EventDispatcher.dispatch("error", this, err.message);

@@ -22,7 +22,7 @@ export interface CaseCardProps {
 
 export interface CaseCardState {
     rats: { [user: string]: CaseRatState };
-    messages: Array<JSX.Element>;
+    messages: Array<{ uid: string; elem: JSX.Element }>;
     duration: string;
     connected: boolean;
     active: boolean;
@@ -188,7 +188,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         return this.state.messages.map((msg) => {
             return (
                 <div className="chat-row" key={Utils.getUniqueKey("case-chat")}>
-                    {msg}
+                    {msg.elem}
                 </div>
             );
         });
@@ -324,16 +324,32 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         };
     }
 
+    private messageAlreadyRecorded(message: BaseMessage | Log) {
+        const m = this.state.messages;
+        for (let i = m.length - 1; i >= 0; i--) {
+            if (m[i].uid === message.uid) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private grabChat() {
         return async (data: BaseMessage) => {
             if (data.id === this.props.id) {
+                if (this.messageAlreadyRecorded(data)) return;
                 this.setState(
                     update(this.state, {
                         messages: {
                             $push: [
-                                <>
-                                    {Chat.formatChatText(data.raw.user)}: {Chat.formatChatText(data.raw.text)}
-                                </>,
+                                {
+                                    uid: data.uid,
+                                    elem: (
+                                        <>
+                                            {Chat.formatChatText(data.raw.user)}: {Chat.formatChatText(data.raw.text)}
+                                        </>
+                                    ),
+                                },
                             ],
                         },
                         unread: { $set: true },
@@ -354,13 +370,19 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             const isMechaSqueak = data.user === "MechaSqueak[BOT]";
             console.log(data.text, isClient, isAssignedRat, containsClientName, isMechaSqueak);
             if (!isMechaSqueak && (isClient || isAssignedRat || containsClientName)) {
+                if (this.messageAlreadyRecorded(data)) return;
                 this.setState(
                     update(this.state, {
                         messages: {
                             $push: [
-                                <>
-                                    {Chat.formatChatText(data.user)}: {Chat.formatChatText(data.text)}
-                                </>,
+                                {
+                                    uid: data.uid,
+                                    elem: (
+                                        <>
+                                            {Chat.formatChatText(data.user)}: {Chat.formatChatText(data.text)}
+                                        </>
+                                    ),
+                                },
                             ],
                         },
                         unread: { $set: true },

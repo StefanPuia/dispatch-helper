@@ -18,7 +18,7 @@ export default class LogParser {
         fuelRev: /(?:fuel)\s*(?<status>\+|-).*?(?:#|case)?\s*(?<case>\d+)/i,
         ratsignal: new RegExp(
             "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+) " +
-                "\\((?:(?:\\d+\\.\\d+ LY from \\w+)|(?<sysconf>not in Fuelrats System Database))\\) - " +
+                "\\((?:(?:\\d+\\.\\d+ LY from \\w+)|(?<sysconf>(?:not in Fuelrats System Database)|(?:too short to verify)))\\) - " +
                 "Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK) - Language: .+? \\((?<lang>.+?)\\)\\s+" +
                 "(?:- IRC Nickname: (?<nick>.+?))?\\(Case #(?<case>\\d+)\\) .+",
             "i"
@@ -49,8 +49,9 @@ export default class LogParser {
     }
 
     private async handleIncoming(raw: IncomingLog) {
-        const { command, nick, args } = raw;
+        const { command, nick, args, uid } = raw;
         const message: Log = {
+            uid: uid,
             time: new Date(),
             type: command === "PRIVMSG" ? "message" : "event",
             user: nick || "_",
@@ -59,6 +60,7 @@ export default class LogParser {
         };
 
         const baseMessage: BaseMessage = {
+            uid: uid,
             raw: message,
             id: -1,
             time: message.time,
@@ -107,6 +109,7 @@ export default class LogParser {
 
     private async parseIrcMessage(message: Log) {
         const baseMessage: BaseMessage = {
+            uid: message.uid,
             raw: message,
             time: message.time,
             id: -1,
@@ -166,20 +169,6 @@ export default class LogParser {
                 id: parseInt(m.case),
             } as BaseMessage);
         });
-
-        // this.onMatch(message, "connect", (m) => {
-        //     parsed = true;
-        //     EventDispatcher.dispatch(`case.connect`, this, {
-        //         ...baseMessage,
-        //     } as BaseMessage);
-        // });
-
-        // this.onMatch(message, "disconnect", (m) => {
-        //     parsed = true;
-        //     EventDispatcher.dispatch(`case.disconnect`, this, {
-        //         ...baseMessage,
-        //     } as BaseMessage);
-        // });
 
         this.onMatch(message, "assign", (m) => {
             parsed = true;
@@ -249,14 +238,6 @@ export default class LogParser {
             } as BaseMessage);
         });
 
-        // this.onMatch(message, "nickChange", (m) => {
-        //     parsed = true;
-        //     EventDispatcher.dispatch(`nickchange`, this, {
-        //         ...baseMessage,
-        //         nick: m.newnick,
-        //     });
-        // });
-
         if (message.user === "MechaSqueak[BOT]") {
             this.onMatch(message, "ratsignal", (m) => {
                 parsed = true;
@@ -265,7 +246,7 @@ export default class LogParser {
                     id: parseInt(m.case),
                     client: m.client,
                     system: m.system,
-                    sysconf: m.sysconf !== "not in Fuelrats System Database",
+                    sysconf: !m.sysconf,
                     platform: m.platform,
                     cr: m.oxygen === "NOT OK",
                     lang: m.lang,
@@ -324,6 +305,7 @@ export default class LogParser {
 type MatchCallback = ((match: { [k: string]: any }) => void) | (() => void);
 
 type IncomingLog = {
+    uid: string;
     prefix?: string;
     nick?: string;
     user?: string;
@@ -336,6 +318,7 @@ type IncomingLog = {
 };
 
 export type Log = {
+    uid: string;
     time: Date;
     user: string;
     type: "message" | "event";
@@ -347,6 +330,7 @@ export interface BaseMessage {
     raw: Log;
     id: number;
     time: Date;
+    uid: string;
 }
 
 export interface NewCase extends BaseMessage {

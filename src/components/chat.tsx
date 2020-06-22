@@ -45,6 +45,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
                     logs: {
                         $push: [
                             {
+                                uid: `error-${new Date().getTime()}-${Math.floor(Math.random() * 10000)}`,
                                 time: new Date(),
                                 text: `<span style="color: red">${errorText}</span>`,
                                 user: "SYSTEM",
@@ -131,7 +132,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
     }
 
     private randomColour() {
-        return `#${randomRGB().toString(16)}${randomRGB().toString(16)}${randomRGB().toString(16)}`;
+        return `rgb(${randomRGB()},${randomRGB()},${randomRGB()})`;
 
         function randomRGB() {
             return Math.floor(Math.random() * 232) + 25;
