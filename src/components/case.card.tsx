@@ -1,12 +1,12 @@
 import update from "immutability-helper";
-import moment from "moment";
 import React from "react";
 
 import { EventDispatcher } from "../core/event.dispatcher";
-import { Callout, CalloutJumps, BaseMessage, CaseAssign, Log, NickChange } from "../core/log.parser";
+import { BaseMessage, Callout, CalloutJumps, CaseAssign, NickChange } from "../core/log.parser";
 import Utils from "../core/utils";
+import CaseDuration from "./case/case.duration";
+import CaseLogs from "./case/case.logs";
 import Chat from "./chat";
-import App from "../App";
 
 export interface CaseCardProps {
     id: number;
@@ -22,8 +22,6 @@ export interface CaseCardProps {
 
 export interface CaseCardState {
     rats: { [user: string]: CaseRatState };
-    messages: Array<{ uid: string; elem: JSX.Element }>;
-    duration: string;
     connected: boolean;
     active: boolean;
     cr: boolean;
@@ -48,17 +46,13 @@ interface CaseRatState {
 type RatState = "fr" | "wr" | "bc" | "fuel";
 
 class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
-    private interval: NodeJS.Timeout | undefined;
     private firstRat: string = "";
-    private chatLines: HTMLDivElement | null = null;
-    private chat: HTMLDivElement | null = null;
+    private container: HTMLDivElement | null = null;
 
     constructor(props: CaseCardProps) {
         super(props);
         this.state = {
             rats: {},
-            messages: [],
-            duration: this.calculateDuration(),
             connected: true,
             active: true,
             cr: this.props.cr,
@@ -72,6 +66,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.handleCaseAssign = this.handleCaseAssign.bind(this);
         this.handleStandDown = this.handleStandDown.bind(this);
         this.closeCase = this.closeCase.bind(this);
+        this.setRead = this.setRead.bind(this);
     }
 
     render() {
@@ -83,9 +78,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                     (this.state.cr ? " code-red" : "") +
                     (this.state.unread ? " case-unread" : "")
                 }
-                onClick={(e) => {
-                    this.setState({ unread: false });
-                }}
+                onClick={this.setRead}
+                ref={(el) => (this.container = el)}
             >
                 <div className="case-card-header">
                     <div
@@ -114,26 +108,12 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                         {this.state.system}
                     </div>
                     <div></div>
-                    <div className="case-time">{this.state.duration}</div>
+                    <CaseDuration start={this.props.created.getTime()} />
                 </div>
                 <div className="case-card-body">{this.renderRats()}</div>
-                <div className="case-card-footer" ref={(el) => (this.chatLines = el)}>
-                    <div className="chat" ref={(el) => (this.chat = el)}>
-                        {this.renderChatMessages()}
-                    </div>
-                </div>
+                <CaseLogs id={this.props.id} caseState={this.state} />
             </div>
         );
-    }
-
-    componentDidUpdate() {
-        if (this.chatLines && this.chat && App.isFocused) {
-            this.chatLines.scrollTo(0, this.chat.getBoundingClientRect().height + 1000);
-        }
-    }
-
-    private calculateDuration() {
-        return moment.utc(moment().diff(moment.utc(this.props.created))).format("HH:mm:ss");
     }
 
     private renderRats() {
@@ -187,14 +167,10 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         return `rat-status-${this.state.rats[rat].state[_status as RatState]}`;
     }
 
-    private renderChatMessages() {
-        return this.state.messages.map((msg) => {
-            return (
-                <div className="chat-row" key={Utils.getUniqueKey("case-chat")}>
-                    {msg.elem}
-                </div>
-            );
-        });
+    private setRead(e: React.MouseEvent) {
+        if (this.container) {
+            this.container.classList.remove("case-unread");
+        }
     }
 
     private closeCase() {
@@ -327,73 +303,6 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         };
     }
 
-    private messageAlreadyRecorded(message: BaseMessage | Log) {
-        const m = this.state.messages;
-        for (let i = m.length - 1; i >= 0; i--) {
-            if (typeof message.uid !== "undefined" && m[i].uid === message.uid) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private grabChat() {
-        return async (data: BaseMessage) => {
-            if (data.id === this.props.id) {
-                if (this.messageAlreadyRecorded(data)) return;
-                this.setState(
-                    update(this.state, {
-                        messages: {
-                            $push: [
-                                {
-                                    uid: data.uid,
-                                    elem: (
-                                        <>
-                                            {Chat.formatChatText(data.raw.user)}: {Chat.formatChatText(data.raw.text)}
-                                        </>
-                                    ),
-                                },
-                            ],
-                        },
-                        unread: { $set: true },
-                    })
-                );
-            }
-        };
-    }
-
-    private grabClientMessages() {
-        return async (data: Log) => {
-            const isClient = data.user === this.state.nick;
-            const isAssignedRat =
-                Object.keys(this.state.rats)
-                    .filter((rat) => this.state.rats[rat].assigned)
-                    .indexOf(data.user) > -1;
-            const containsClientName = data.text.indexOf(this.state.nick) > -1;
-            const isMechaSqueak = data.user === "MechaSqueak[BOT]";
-            if (!isMechaSqueak && (isClient || isAssignedRat || containsClientName)) {
-                if (this.messageAlreadyRecorded(data)) return;
-                this.setState(
-                    update(this.state, {
-                        messages: {
-                            $push: [
-                                {
-                                    uid: data.uid,
-                                    elem: (
-                                        <>
-                                            {Chat.formatChatText(data.user)}: {Chat.formatChatText(data.text)}
-                                        </>
-                                    ),
-                                },
-                            ],
-                        },
-                        unread: { $set: true },
-                    })
-                );
-            }
-        };
-    }
-
     private handleNickChange() {
         return async (data: NickChange) => {
             if (this.state.nick === data.raw.user) {
@@ -410,6 +319,14 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                         rats: { $set: rats },
                     })
                 );
+            }
+        };
+    }
+
+    private setUnread() {
+        return async (data: BaseMessage) => {
+            if (data.id === this.props.id) {
+                this.setState({ unread: true });
             }
         };
     }
@@ -433,26 +350,18 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             ["case.cr", this.changeState("cr")],
             ["case.sysconf", this.changeState("sysconf", true)],
             ["case.sys", this.changeState("system", undefined, true, "sys")],
-            ["case.intelligrab", this.grabChat()],
-            ["irc.message", this.grabClientMessages()],
             ["nickchange", this.handleNickChange()],
+            ["case.unread", this.setUnread()],
         ];
     }
 
     componentWillUnmount() {
-        if (this.interval) {
-            clearInterval(this.interval);
-        }
         for (const handler of this.getEventHandlers()) {
             EventDispatcher.removeListener(handler[0], handler[1]);
         }
     }
 
     componentDidMount() {
-        // this.interval = setInterval(() => {
-        //     this.setState({ duration: this.calculateDuration() });
-        // }, 1000);
-
         for (const handler of this.getEventHandlers()) {
             EventDispatcher.listen(handler[0], handler[1]);
         }
