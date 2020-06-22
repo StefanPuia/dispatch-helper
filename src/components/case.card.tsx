@@ -330,7 +330,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     private messageAlreadyRecorded(message: BaseMessage | Log) {
         const m = this.state.messages;
         for (let i = m.length - 1; i >= 0; i--) {
-            if (m[i].uid === message.uid) {
+            if (typeof message.uid !== "undefined" && m[i].uid === message.uid) {
                 return true;
             }
         }
@@ -371,7 +371,6 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                     .indexOf(data.user) > -1;
             const containsClientName = data.text.indexOf(this.state.nick) > -1;
             const isMechaSqueak = data.user === "MechaSqueak[BOT]";
-            console.log(data.text, isClient, isAssignedRat, containsClientName, isMechaSqueak);
             if (!isMechaSqueak && (isClient || isAssignedRat || containsClientName)) {
                 if (this.messageAlreadyRecorded(data)) return;
                 this.setState(
