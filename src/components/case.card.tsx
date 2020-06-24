@@ -183,7 +183,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         if (data.rat === this.state.nick) return;
         // if not this case, unassign rat
         if (data.id !== this.props.id) {
-            if (rats[data.rat]) {
+            if (rats[data.rat] && !rats[data.rat].assigned) {
                 delete rats[data.rat];
                 this.setState(
                     update(this.state, {
@@ -244,32 +244,44 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private handleCaseAssign(assign: boolean) {
         return async (data: CaseAssign) => {
-            if (data.id !== this.props.id) return;
             const rats = this.state.rats;
-            for (const rat of data.rats) {
-                if (rat !== this.state.nick) {
-                    if (!rats[rat]) {
-                        rats[rat] = {
-                            assigned: assign,
-                            state: {},
-                        };
-                    } else {
-                        rats[rat].assigned = assign;
+            if (data.id !== this.props.id) {
+                for (const rat of data.rats) {
+                    if (rats[rat] && !rats[rat].assigned) {
+                        delete rats[rat];
                     }
                 }
+                this.setState(
+                    update(this.state, {
+                        rats: { $set: rats },
+                    })
+                );
+            } else {
+                for (const rat of data.rats) {
+                    if (rat !== this.state.nick) {
+                        if (!rats[rat]) {
+                            rats[rat] = {
+                                assigned: assign,
+                                state: {},
+                            };
+                        } else {
+                            rats[rat].assigned = assign;
+                        }
+                    }
+                }
+                this.setState(
+                    update(this.state, {
+                        rats: { $set: rats },
+                    })
+                );
             }
-            this.setState(
-                update(this.state, {
-                    rats: { $set: rats },
-                })
-            );
         };
     }
 
     private async handleStandDown(data: Callout) {
         if ((data.id && data.id !== this.props.id) || data.rat === this.state.nick) return;
         const rats = this.state.rats;
-        if (!rats[data.rat]) return;
+        if (!rats[data.rat] || rats[data.rat].assigned) return;
         delete rats[data.rat];
         this.setState(
             update(this.state, {
