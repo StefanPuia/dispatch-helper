@@ -4,7 +4,6 @@ import React from "react";
 
 import CaseController from "./components/case.controller";
 import Chat from "./components/chat";
-import { EventDispatcher } from "./core/event.dispatcher";
 import { IRCReader } from "./core/irc.reader";
 import LogParser from "./core/log.parser";
 import Utils from "./core/utils";
@@ -73,10 +72,6 @@ class App extends React.Component<AppProps, AppState> {
 
         LogParser.init();
         IRCReader.init();
-
-        EventDispatcher.listen("error.parse", async (data) => {
-            console.error(data);
-        });
     }
 }
 

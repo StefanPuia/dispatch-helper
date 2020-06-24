@@ -23,50 +23,13 @@ class Chat extends React.Component<ChatProps, ChatState> {
         super(props);
         this.state = { logs: [], ready: false };
 
-        EventDispatcher.listen("irc.message", async (log: Log) => {
-            if (this.state.ready) {
-                this.setState(
-                    update(this.state, {
-                        logs: {
-                            $push: [log],
-                        },
-                    })
-                );
-            }
-        });
+        this.handleError = this.handleError.bind(this);
+        this.handleNewMessage = this.handleNewMessage.bind(this);
+        this.handleNickChange = this.handleNickChange.bind(this);
 
-        EventDispatcher.listen("error", async (errorText) => {
-            this.setState(
-                update(this.state, {
-                    logs: {
-                        $push: [
-                            {
-                                uid: `error-${new Date().getTime()}-${Math.floor(Math.random() * 10000)}`,
-                                time: new Date(),
-                                text: `<span style="color: red">${errorText}</span>`,
-                                user: "SYSTEM",
-                                type: "event",
-                            },
-                        ],
-                    },
-                })
-            );
-        });
-
-        EventDispatcher.listen("nickchange", async (data: NickChange) => {
-            if (Chat.users[data.raw.user]) {
-                Chat.users[data.nick] = Chat.getNickColour(data.raw.user);
-            }
-            if (this.state.ready) {
-                this.setState(
-                    update(this.state, {
-                        logs: {
-                            $push: [data.raw],
-                        },
-                    })
-                );
-            }
-        });
+        EventDispatcher.listen("error", this.handleError);
+        EventDispatcher.listen("irc.message", this.handleNewMessage);
+        EventDispatcher.listen("nickchange", this.handleNickChange);
     }
 
     render() {
@@ -112,6 +75,51 @@ class Chat extends React.Component<ChatProps, ChatState> {
     componentDidUpdate() {
         if (this.chatLog && this.chat && App.isFocused) {
             this.chatLog.scrollTo(0, this.chat.getBoundingClientRect().height + 1000);
+        }
+    }
+
+    private async handleNewMessage(log: Log) {
+        if (this.state.ready) {
+            this.setState(
+                update(this.state, {
+                    logs: {
+                        $push: [log],
+                    },
+                })
+            );
+        }
+    }
+
+    private async handleError(errorText: string) {
+        this.setState(
+            update(this.state, {
+                logs: {
+                    $push: [
+                        {
+                            uid: `error-${new Date().getTime()}-${Math.floor(Math.random() * 10000)}`,
+                            time: new Date(),
+                            text: `<span style="color: red">${errorText}</span>`,
+                            user: "SYSTEM",
+                            type: "event",
+                        },
+                    ],
+                },
+            })
+        );
+    }
+
+    private async handleNickChange(data: NickChange) {
+        if (Chat.users[data.raw.user]) {
+            Chat.users[data.nick] = Chat.getNickColour(data.raw.user);
+        }
+        if (this.state.ready) {
+            this.setState(
+                update(this.state, {
+                    logs: {
+                        $push: [data.raw],
+                    },
+                })
+            );
         }
     }
 

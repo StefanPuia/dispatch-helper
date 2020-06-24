@@ -19,10 +19,13 @@ export interface CaseLogsState {
 class CaseLogs extends React.Component<CaseLogsProps, CaseLogsState> {
     private chatLines: HTMLDivElement | null = null;
     private chat: HTMLDivElement | null = null;
+    private mounted = false;
 
     constructor(props: CaseLogsProps) {
         super(props);
         this.state = { messages: [] };
+        this.grabChat = this.grabChat.bind(this);
+        this.grabClientMessages = this.grabClientMessages.bind(this);
     }
 
     render() {
@@ -61,79 +64,81 @@ class CaseLogs extends React.Component<CaseLogsProps, CaseLogsState> {
         return false;
     }
 
-    private grabChat() {
-        return async (data: BaseMessage) => {
-            if (data.id === this.props.id) {
-                if (this.messageAlreadyRecorded(data)) return;
-                this.setState(
-                    update(this.state, {
-                        messages: {
-                            $push: [
-                                {
-                                    uid: data.uid,
-                                    elem: (
-                                        <>
-                                            {Chat.formatChatText(data.raw.user)}: {Chat.formatChatText(data.raw.text)}
-                                        </>
-                                    ),
-                                },
-                            ],
+    private async grabChat(data: BaseMessage) {
+        if (data.id === this.props.id) {
+            if (this.messageAlreadyRecorded(data)) return;
+            this.updateState({
+                messages: {
+                    $push: [
+                        {
+                            uid: data.uid,
+                            elem: (
+                                <>
+                                    {Chat.formatChatText(data.raw.user)}: {Chat.formatChatText(data.raw.text)}
+                                </>
+                            ),
                         },
-                    })
-                );
-                EventDispatcher.dispatch("case.unread", this, { id: data.id });
-            }
-        };
+                    ],
+                },
+            });
+            EventDispatcher.dispatch("case.unread", this, { id: data.id });
+        }
     }
 
-    private grabClientMessages() {
-        return async (data: Log) => {
-            const isClient = data.user === this.props.caseState.nick;
-            const isAssignedRat =
-                Object.keys(this.props.caseState.rats)
-                    .filter((rat) => this.props.caseState.rats[rat].assigned)
-                    .indexOf(data.user) > -1;
-            const containsClientName = data.text.indexOf(this.props.caseState.nick) > -1;
-            const isMechaSqueak = data.user === "MechaSqueak[BOT]";
-            if (!isMechaSqueak && (isClient || isAssignedRat || containsClientName)) {
-                if (this.messageAlreadyRecorded(data)) return;
-                this.setState(
-                    update(this.state, {
-                        messages: {
-                            $push: [
-                                {
-                                    uid: data.uid,
-                                    elem: (
-                                        <>
-                                            {Chat.formatChatText(data.user)}: {Chat.formatChatText(data.text)}
-                                        </>
-                                    ),
-                                },
-                            ],
+    private async grabClientMessages(data: Log) {
+        const isClient = data.user === this.props.caseState.nick;
+        const isAssignedRat =
+            Object.keys(this.props.caseState.rats)
+                .filter((rat) => this.props.caseState.rats[rat].assigned)
+                .indexOf(data.user) > -1;
+        const containsClientName = data.text.match(
+            new RegExp(`(?:^|[^\\w\\d_])${this.props.caseState.nick}(?:$|[^\\w\\d_])`)
+        );
+        const isMechaSqueak = data.user === "MechaSqueak[BOT]";
+        if (!isMechaSqueak && (isClient || isAssignedRat || containsClientName)) {
+            if (this.messageAlreadyRecorded(data)) return;
+            this.updateState({
+                messages: {
+                    $push: [
+                        {
+                            uid: data.uid,
+                            elem: (
+                                <>
+                                    {Chat.formatChatText(data.user)}: {Chat.formatChatText(data.text)}
+                                </>
+                            ),
                         },
-                    })
-                );
-                EventDispatcher.dispatch("case.unread", this, { id: this.props.id });
-            }
-        };
+                    ],
+                },
+            });
+            EventDispatcher.dispatch("case.unread", this, { id: this.props.id });
+        }
     }
 
     private getEventHandlers(): Array<[string, any]> {
         return [
-            ["case.intelligrab", this.grabChat()],
-            ["irc.message", this.grabClientMessages()],
+            ["case.intelligrab", this.grabChat],
+            ["irc.message", this.grabClientMessages],
         ];
     }
 
     componentWillUnmount() {
+        this.mounted = false;
         for (const handler of this.getEventHandlers()) {
             EventDispatcher.removeListener(handler[0], handler[1]);
         }
     }
 
     componentDidMount() {
-        for (const handler of this.getEventHandlers()) {
-            EventDispatcher.listen(handler[0], handler[1]);
+        this.mounted = true;
+        for (const [event, handle] of this.getEventHandlers()) {
+            EventDispatcher.listen(event, handle);
+        }
+    }
+
+    private updateState(newState: any, stateObj?: any) {
+        if (this.mounted) {
+            this.setState(update(stateObj || this.state, newState));
         }
     }
 }

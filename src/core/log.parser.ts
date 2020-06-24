@@ -1,5 +1,6 @@
 /* eslint-disable no-cond-assign */
 import { EventDispatcher } from "./event.dispatcher";
+import CaseController from "../components/case.controller";
 
 export default class LogParser {
     private static INSTANCE: LogParser;
@@ -23,17 +24,17 @@ export default class LogParser {
                 "(?:- IRC Nickname: (?<nick>.+?))?\\(Case #(?<case>\\d+)\\) .+",
             "i"
         ),
-        closed: /^!(?:close|clear)\s+(?<case>\d+)(?:\s+(?<rat>.+))?/i,
+        closed: /^!(?:close|clear)\s+(?:(?<case>\d+)|(?<client>\S+))(?:\s+(?<rat>.+))?/i,
         // disconnect: /has quit \(.+\)/i,
         // connect: /\(.+?\) has joined/i,
-        assign: /^!(?:go|assign)\s+(?<case>\d+)\s+(?<rats>.+)/i,
-        unassign: /^!unassign\s+(?<case>\d+)\s+(?<rats>.+)/i,
-        active: /^!(?:in)?active\s+(?<case>\d+)/i,
-        md: /^!md\s+(?<case>\d+)\s+.+/i,
-        cr: /^!cr\s+(?<case>\d+)/i,
+        assign: /^!(?:go|assign)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<rats>.+)/i,
+        unassign: /^!unassign\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<rats>.+)/i,
+        active: /^!(?:in)?active\s+(?:(?<case>\d+)|(?<client>\S+))/i,
+        md: /^!md\s+(?:(?<case>\d+)|(?<client>\S+))\s+.+/i,
+        cr: /^!cr\s+(?:(?<case>\d+)|(?<client>\S+))/i,
         sysconf: /#?(?<case>\d+).*?(?:sysconf|system confirmed)/i,
         sysconfRev: /(?:sysconf|system confirmed).*?#?(?<case>\d+)/i,
-        sys: /^!sys\s+(?<case>\d+)\s+(?<system>.+)/i,
+        sys: /^!sys\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<system>.+)/i,
         intelliGrab: /(?:#|case)\s*(?<case>\d+)/i,
         // eslint-disable-next-line no-control-regex
         ircAction: /^\x01ACTION (.+)\x01$/,
@@ -166,7 +167,7 @@ export default class LogParser {
             EventDispatcher.dispatch(`case.closed`, this, {
                 ...callout,
                 rat: m.rat,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
             } as BaseMessage);
         });
 
@@ -174,7 +175,7 @@ export default class LogParser {
             parsed = true;
             EventDispatcher.dispatch(`case.assign`, this, {
                 ...baseMessage,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
                 rats: m.rats.split(/\s+/),
             } as CaseAssign);
         });
@@ -183,7 +184,7 @@ export default class LogParser {
             parsed = true;
             EventDispatcher.dispatch(`case.unassign`, this, {
                 ...baseMessage,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
                 rats: m.rats.split(/\s+/),
             } as CaseAssign);
         });
@@ -201,7 +202,7 @@ export default class LogParser {
             parsed = true;
             EventDispatcher.dispatch(`case.active`, this, {
                 ...baseMessage,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
             } as BaseMessage);
         });
 
@@ -209,7 +210,7 @@ export default class LogParser {
             parsed = true;
             EventDispatcher.dispatch(`case.md`, this, {
                 ...baseMessage,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
             } as BaseMessage);
         });
 
@@ -217,7 +218,7 @@ export default class LogParser {
             parsed = true;
             EventDispatcher.dispatch(`case.cr`, this, {
                 ...baseMessage,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
             } as BaseMessage);
         });
 
@@ -233,7 +234,7 @@ export default class LogParser {
             parsed = true;
             EventDispatcher.dispatch(`case.sys`, this, {
                 ...baseMessage,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
                 sys: m.system,
             } as BaseMessage);
         });
@@ -288,6 +289,10 @@ export default class LogParser {
                 return callback(groups);
             }
         }
+    }
+
+    private caseNickId(id: string, client?: string): number | undefined {
+        return id ? parseInt(id) : CaseController.getCaseNumberForNick(client || "");
     }
 
     private static getInstance() {

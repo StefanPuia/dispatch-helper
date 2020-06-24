@@ -7,6 +7,7 @@ import Utils from "../core/utils";
 import CaseDuration from "./case/case.duration";
 import CaseLogs from "./case/case.logs";
 import Chat from "./chat";
+import CaseController from "./case.controller";
 
 export interface CaseCardProps {
     id: number;
@@ -18,6 +19,7 @@ export interface CaseCardProps {
     cr: boolean;
     sysconf: boolean;
     platform: "PC" | "XB" | "PS";
+    caseKey: string;
 }
 
 export interface CaseCardState {
@@ -48,6 +50,7 @@ type RatState = "fr" | "wr" | "bc" | "fuel";
 class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     private firstRat: string = "";
     private container: HTMLDivElement | null = null;
+    private mounted = false;
 
     constructor(props: CaseCardProps) {
         super(props);
@@ -62,15 +65,38 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             platform: this.props.platform,
             unread: false,
         };
-        this.handleJumpCall = this.handleJumpCall.bind(this);
-        this.handleCaseAssign = this.handleCaseAssign.bind(this);
-        this.handleStandDown = this.handleStandDown.bind(this);
+
         this.closeCase = this.closeCase.bind(this);
+        this.handleAssign = this.handleAssign.bind(this);
+        this.handleCaseAssign = this.handleCaseAssign.bind(this);
+        this.handleConnect = this.handleConnect.bind(this);
+        this.handleDisonnect = this.handleDisonnect.bind(this);
+        this.handleJumpCall = this.handleJumpCall.bind(this);
+        this.handleNickChange = this.handleNickChange.bind(this);
+        this.handleStandDown = this.handleStandDown.bind(this);
+        this.handleUnssign = this.handleUnssign.bind(this);
+        this.setBcMinus = this.setBcMinus.bind(this);
+        this.setBcPlus = this.setBcPlus.bind(this);
+        this.setCaseActive = this.setCaseActive.bind(this);
+        this.setCaseCR = this.setCaseCR.bind(this);
+        this.setCaseSysconf = this.setCaseSysconf.bind(this);
+        this.setCaseSystem = this.setCaseSystem.bind(this);
+        this.setFrMinus = this.setFrMinus.bind(this);
+        this.setFrPlus = this.setFrPlus.bind(this);
+        this.setFuel = this.setFuel.bind(this);
+        this.setUnread = this.setUnread.bind(this);
+        this.setWrMinus = this.setWrMinus.bind(this);
+        this.setWrPlus = this.setWrPlus.bind(this);
+
+        for (const handler of this.getEventHandlers()) {
+            EventDispatcher.listen(handler[0], handler[1]);
+        }
     }
 
     render() {
         return (
             <div
+                key={this.props.caseKey}
                 className={
                     "case-card" +
                     (this.state.active ? "" : " case-inactive") +
@@ -79,7 +105,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                 }
                 onClick={(e: React.MouseEvent) => {
                     if (this.state.unread) {
-                        this.setState({ unread: false });
+                        this.updateState({ unread: { $set: false } });
                     }
                 }}
                 ref={(el) => (this.container = el)}
@@ -114,7 +140,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                     <CaseDuration start={this.props.created.getTime()} />
                 </div>
                 <div className="case-card-body">{this.renderRats()}</div>
-                <CaseLogs id={this.props.id} caseState={this.state} />
+                <CaseLogs key={this.props.caseKey} id={this.props.id} caseState={this.state} />
             </div>
         );
     }
@@ -178,6 +204,12 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         }
     }
 
+    private updateState(newState: any, stateObj?: any) {
+        if (this.mounted) {
+            this.setState(update(stateObj || this.state, newState));
+        }
+    }
+
     private async handleJumpCall(data: CalloutJumps) {
         const rats = this.state.rats;
         if (data.rat === this.state.nick) return;
@@ -185,11 +217,10 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         if (data.id !== this.props.id) {
             if (rats[data.rat] && !rats[data.rat].assigned) {
                 delete rats[data.rat];
-                this.setState(
-                    update(this.state, {
-                        rats: { $set: rats },
-                    })
-                );
+                this.updateState({
+                    rats: { $set: rats },
+                    unread: { $set: true },
+                });
             }
         } else {
             if (!rats[data.rat]) {
@@ -198,84 +229,74 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                     jumps: data.jumps,
                     state: {},
                 };
-                this.setState(
-                    update(this.state, {
-                        rats: { $set: rats },
-                    })
-                );
+                this.updateState({
+                    rats: { $set: rats },
+                    unread: { $set: true },
+                });
             }
         }
     }
 
-    private setRatStatus(prop: RatState, value: boolean) {
-        return async (data: Callout) => {
-            if (data.id !== this.props.id || data.rat === this.state.nick) return;
-            const rats = this.state.rats;
-            if (!this.state.rats[data.rat]) {
-                rats[data.rat] = {
-                    assigned: false,
-                    state: {},
-                };
+    private setRatStatus(prop: RatState, value: boolean, data: Callout) {
+        if (data.id !== this.props.id || data.rat === this.state.nick) return;
+        const rats = this.state.rats;
+        if (!this.state.rats[data.rat]) {
+            rats[data.rat] = {
+                assigned: false,
+                state: {},
+            };
+        }
+        rats[data.rat].state[prop] = value;
+        if (prop === "fuel") {
+            for (const key of ["fr", "wr", "bc"]) {
+                rats[data.rat].state[key as RatState] = undefined;
             }
-            rats[data.rat].state[prop] = value;
-            if (prop === "fuel") {
-                for (const key of ["fr", "wr", "bc"]) {
-                    rats[data.rat].state[key as RatState] = undefined;
-                }
-                if (!this.firstRat) {
-                    this.firstRat = data.rat;
-                }
+            if (!this.firstRat) {
+                this.firstRat = data.rat;
             }
-            this.setState(
-                update(this.state, {
-                    rats: { $set: rats },
-                })
-            );
-        };
+        }
+        this.updateState({
+            rats: { $set: rats },
+            unread: { $set: true },
+        });
     }
 
-    private handleConnectDisconnect(isConnect: boolean = true) {
-        return async (data: BaseMessage) => {
-            if (this.state.nick === data.raw.user) {
-                this.setState({ connected: isConnect });
-            }
-        };
+    private handleConnectDisconnect(isConnect: boolean = true, data: BaseMessage) {
+        if (this.state.nick === data.raw.user) {
+            this.updateState({ connected: { $set: isConnect }, unread: { $set: true } });
+        }
     }
 
-    private handleCaseAssign(assign: boolean) {
-        return async (data: CaseAssign) => {
-            const rats = this.state.rats;
-            if (data.id !== this.props.id) {
-                for (const rat of data.rats) {
-                    if (rats[rat] && !rats[rat].assigned) {
-                        delete rats[rat];
-                    }
+    private handleCaseAssign(assign: boolean, data: CaseAssign) {
+        const rats = this.state.rats;
+        if (data.id !== this.props.id) {
+            for (const rat of data.rats) {
+                if (rats[rat] && !rats[rat].assigned) {
+                    delete rats[rat];
                 }
-                this.setState(
-                    update(this.state, {
-                        rats: { $set: rats },
-                    })
-                );
-            } else {
-                for (const rat of data.rats) {
-                    if (rat !== this.state.nick) {
-                        if (!rats[rat]) {
-                            rats[rat] = {
-                                assigned: assign,
-                                state: {},
-                            };
-                        } else {
-                            rats[rat].assigned = assign;
-                        }
-                    }
-                }
-                this.setState(
-                    update(this.state, {
-                        rats: { $set: rats },
-                    })
-                );
             }
-        };
+            this.updateState({
+                rats: { $set: rats },
+                unread: { $set: true },
+            });
+        } else {
+            for (const rat of data.rats) {
+                if (rat !== this.state.nick) {
+                    if (!rats[rat]) {
+                        rats[rat] = {
+                            assigned: assign,
+                            state: {},
+                        };
+                    } else {
+                        rats[rat].assigned = assign;
+                    }
+                }
+            }
+            this.updateState({
+                rats: { $set: rats },
+                unread: { $set: true },
+            });
+        }
     }
 
     private async handleStandDown(data: Callout) {
@@ -283,97 +304,153 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         const rats = this.state.rats;
         if (!rats[data.rat] || rats[data.rat].assigned) return;
         delete rats[data.rat];
-        this.setState(
-            update(this.state, {
-                rats: { $set: rats },
-            })
-        );
+        this.updateState({
+            rats: { $set: rats },
+            unread: { $set: true },
+        });
     }
 
     private changeState(
         stateName: "active" | "cr" | "sysconf" | "system",
+        data: BaseMessage,
         override?: any,
         useData?: boolean,
         overrideDataName?: string
     ) {
-        return async (data: BaseMessage) => {
-            if (data.id !== this.props.id) return;
-            let state: any = "";
-            if (typeof override !== "undefined") {
-                state = override;
-            } else if (useData) {
-                state = (data as any)[overrideDataName || stateName];
-            } else {
-                state = !this.state[stateName];
-            }
-            const updateObject: any = {};
-            updateObject[stateName] = { $set: state };
-            this.setState(update(this.state, updateObject));
+        if (data.id !== this.props.id) return;
+        let state: any = "";
+        if (typeof override !== "undefined") {
+            state = override;
+        } else if (useData) {
+            state = (data as any)[overrideDataName || stateName];
+        } else {
+            state = !this.state[stateName];
+        }
+        const updateObject: any = {
+            unread: { $set: true },
         };
+        updateObject[stateName] = { $set: state };
+        this.updateState(updateObject);
     }
 
-    private handleNickChange() {
-        return async (data: NickChange) => {
-            if (this.state.nick === data.raw.user) {
-                this.setState({ nick: data.nick });
-            }
-            const rat = Object.keys(this.state.rats).find((rat) => rat === data.raw.user);
-            if (rat) {
-                const rats = this.state.rats;
-                const aux = { ...rats[rat] };
-                delete rats[rat];
-                rats[data.nick] = aux;
-                this.setState(
-                    update(this.state, {
-                        rats: { $set: rats },
-                    })
-                );
-            }
-        };
+    private async handleNickChange(data: NickChange) {
+        if (this.state.nick === data.raw.user) {
+            this.updateState({ nick: { $set: data.nick } });
+        }
+        const rat = Object.keys(this.state.rats).find((rat) => rat === data.raw.user);
+        if (rat) {
+            const rats = this.state.rats;
+            const aux = { ...rats[rat] };
+            delete rats[rat];
+            rats[data.nick] = aux;
+            this.updateState({
+                rats: { $set: rats },
+                unread: { $set: true },
+            });
+        }
     }
 
-    private setUnread() {
-        return async (data: BaseMessage) => {
-            if (data.id === this.props.id) {
-                this.setState({ unread: true });
-            }
-        };
+    private async setUnread(data: BaseMessage) {
+        if (data.id === this.props.id) {
+            this.updateState({ unread: { $set: true } });
+        }
+    }
+
+    private async setFrPlus(data: Callout) {
+        this.setRatStatus("fr", true, data);
+    }
+
+    private async setFrMinus(data: Callout) {
+        this.setRatStatus("fr", false, data);
+    }
+
+    private async setWrPlus(data: Callout) {
+        this.setRatStatus("wr", true, data);
+    }
+
+    private async setWrMinus(data: Callout) {
+        this.setRatStatus("wr", false, data);
+    }
+
+    private async setBcPlus(data: Callout) {
+        this.setRatStatus("bc", true, data);
+    }
+
+    private async setBcMinus(data: Callout) {
+        this.setRatStatus("bc", false, data);
+    }
+
+    private async setFuel(data: Callout) {
+        this.setRatStatus("fuel", true, data);
+    }
+
+    private async handleConnect(data: BaseMessage) {
+        this.handleConnectDisconnect(true, data);
+    }
+
+    private async handleDisonnect(data: BaseMessage) {
+        this.handleConnectDisconnect(false, data);
+    }
+
+    private async handleAssign(data: CaseAssign) {
+        this.handleCaseAssign(true, data);
+    }
+
+    private async handleUnssign(data: CaseAssign) {
+        this.handleCaseAssign(false, data);
+    }
+
+    private async setCaseActive(data: BaseMessage) {
+        this.changeState("active", data);
+    }
+
+    private async setCaseCR(data: BaseMessage) {
+        this.changeState("cr", data);
+    }
+
+    private async setCaseSysconf(data: BaseMessage) {
+        this.changeState("sysconf", data, true);
+    }
+
+    private async setCaseSystem(data: BaseMessage) {
+        this.changeState("system", data, undefined, true, "sys");
     }
 
     private getEventHandlers(): Array<[string, any]> {
         return [
-            ["callout.fr+", this.setRatStatus("fr", true)],
-            ["callout.fr-", this.setRatStatus("fr", false)],
-            ["callout.wr+", this.setRatStatus("wr", true)],
-            ["callout.wr-", this.setRatStatus("wr", false)],
-            ["callout.bc+", this.setRatStatus("bc", true)],
-            ["callout.bc-", this.setRatStatus("bc", false)],
-            ["callout.fuel+", this.setRatStatus("fuel", true)],
+            ["callout.fr+", this.setFrPlus],
+            ["callout.fr-", this.setFrMinus],
+            ["callout.wr+", this.setWrPlus],
+            ["callout.wr-", this.setWrMinus],
+            ["callout.bc+", this.setBcPlus],
+            ["callout.bc-", this.setBcMinus],
+            ["callout.fuel+", this.setFuel],
             ["callout.jumps", this.handleJumpCall],
-            ["case.connect", this.handleConnectDisconnect(true)],
-            ["case.disconnect", this.handleConnectDisconnect(false)],
-            ["case.assign", this.handleCaseAssign(true)],
-            ["case.unassign", this.handleCaseAssign(false)],
+            ["case.connect", this.handleConnect],
+            ["case.disconnect", this.handleDisonnect],
+            ["case.assign", this.handleAssign],
+            ["case.unassign", this.handleUnssign],
             ["callout.stdn", this.handleStandDown],
-            ["case.active", this.changeState("active")],
-            ["case.cr", this.changeState("cr")],
-            ["case.sysconf", this.changeState("sysconf", true)],
-            ["case.sys", this.changeState("system", undefined, true, "sys")],
-            ["nickchange", this.handleNickChange()],
-            ["case.unread", this.setUnread()],
+            ["case.active", this.setCaseActive],
+            ["case.cr", this.setCaseCR],
+            ["case.sysconf", this.setCaseSysconf],
+            ["case.sys", this.setCaseSystem],
+            ["nickchange", this.handleNickChange],
+            ["case.unread", this.setUnread],
         ];
     }
 
     componentWillUnmount() {
+        this.mounted = false;
         for (const handler of this.getEventHandlers()) {
             EventDispatcher.removeListener(handler[0], handler[1]);
         }
     }
 
     componentDidMount() {
-        for (const handler of this.getEventHandlers()) {
-            EventDispatcher.listen(handler[0], handler[1]);
-        }
+        this.mounted = true;
+        CaseController.caseData[this.props.id].props = this.props;
+        CaseController.caseData[this.props.id].state = this.state;
     }
 }
 
