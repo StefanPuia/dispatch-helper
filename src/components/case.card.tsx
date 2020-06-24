@@ -275,10 +275,6 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                     delete rats[rat];
                 }
             }
-            this.updateState({
-                rats: { $set: rats },
-                unread: { $set: true },
-            });
         } else {
             for (const rat of data.rats) {
                 if (rat !== this.state.nick) {
@@ -335,7 +331,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private async handleNickChange(data: NickChange) {
         if (this.state.nick === data.raw.user) {
-            this.updateState({ nick: { $set: data.nick } });
+            this.updateState({ nick: { $set: data.nick }, unread: { $set: true } });
         }
         const rat = Object.keys(this.state.rats).find((rat) => rat === data.raw.user);
         if (rat) {

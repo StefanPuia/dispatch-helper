@@ -22,6 +22,7 @@ div.case-card {
     padding: 0 15px;
     grid-template-rows: 60px 100px 1fr;
     grid-template-areas: "header""body""footer";
+    position: relative;
 }
 
 div.case-card.case-inactive {
@@ -37,7 +38,7 @@ div.case-card.case-md {
 }
 
 div.case-card.code-red {
-    background-color: rgba(136, 0, 0, 0.521);
+    background-color: rgba(136, 0, 0, 0.418);
 }
 
 div.case-card div.case-card-header {
@@ -135,4 +136,17 @@ div.case-card.code-red.case-inactive.case-unread {
     /* animation-name: animation-unread; */
     /* animation-duration: 2s; */
     /* animation-iteration-count: infinite; */
+}
+
+div.case-card.code-red.case-unread::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    content: "";
+    display: block;
+    width: 0;
+    height: 0;
+    border-top: 50px solid rgba(180, 0, 0, 0.39);
+    border-right: 50px solid transparent;
+    z-index: 1;
 }
