@@ -23,17 +23,17 @@ export default class LogParser {
                 "(?:- IRC Nickname: (?<nick>.+?))?\\(Case #(?<case>\\d+)\\) .+",
             "i"
         ),
-        closed: /!(?:close|clear)\s+(?<case>\d+)(?:\s+(?<rat>.+))?/i,
+        closed: /^!(?:close|clear)\s+(?<case>\d+)(?:\s+(?<rat>.+))?/i,
         // disconnect: /has quit \(.+\)/i,
         // connect: /\(.+?\) has joined/i,
-        assign: /!(?:go|assign)\s+(?<case>\d+)\s+(?<rats>.+)/i,
-        unassign: /!unassign\s+(?<case>\d+)\s+(?<rats>.+)/i,
-        active: /!(?:in)?active\s+(?<case>\d+)/i,
-        md: /!md\s+(?<case>\d+)\s+.+/i,
-        cr: /!cr\s+(?<case>\d+)/i,
+        assign: /^!(?:go|assign)\s+(?<case>\d+)\s+(?<rats>.+)/i,
+        unassign: /^!unassign\s+(?<case>\d+)\s+(?<rats>.+)/i,
+        active: /^!(?:in)?active\s+(?<case>\d+)/i,
+        md: /^!md\s+(?<case>\d+)\s+.+/i,
+        cr: /^!cr\s+(?<case>\d+)/i,
         sysconf: /#?(?<case>\d+).*?(?:sysconf|system confirmed)/i,
         sysconfRev: /(?:sysconf|system confirmed).*?#?(?<case>\d+)/i,
-        sys: /!sys\s+(?<case>\d+)\s+(?<system>.+)/i,
+        sys: /^!sys\s+(?<case>\d+)\s+(?<system>.+)/i,
         intelliGrab: /(?:#|case)\s*(?<case>\d+)/i,
         // eslint-disable-next-line no-control-regex
         ircAction: /^\x01ACTION (.+)\x01$/,
@@ -93,11 +93,11 @@ export default class LogParser {
                 break;
 
             case "PRIVMSG":
-                message.text = args[1];
+                message.text = args[1] || "";
                 const isAction = message.text.match(LogParser.REGEX.ircAction);
                 if (isAction) {
                     message.type = "event";
-                    message.text = isAction[1];
+                    message.text = isAction[1] || "";
                 }
                 EventDispatcher.dispatch("irc.message", this, message);
                 break;
