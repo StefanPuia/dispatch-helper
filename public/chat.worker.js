@@ -34,7 +34,7 @@ self.addEventListener("message", (e) => {
     // console.log("worker: ", id, event, data);
     switch (event) {
         case "colour":
-            respond(id, event, Chat.getNickColour(data));
+            Chat.users[id] = data;
             break;
 
         case "format":

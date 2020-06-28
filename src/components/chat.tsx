@@ -12,6 +12,7 @@ export interface ChatProps {}
 export interface ChatState {
     logs: Array<{ uid: string; line: JSX.Element }>;
     ready: boolean;
+    visible: boolean;
 }
 
 class Chat extends React.Component<ChatProps, ChatState> {
@@ -22,11 +23,12 @@ class Chat extends React.Component<ChatProps, ChatState> {
 
     constructor(props: ChatProps) {
         super(props);
-        this.state = { logs: [], ready: false };
+        this.state = { logs: [], ready: false, visible: true };
 
         this.handleError = this.handleError.bind(this);
         this.handleNewMessage = this.handleNewMessage.bind(this);
         this.handleNickChange = this.handleNickChange.bind(this);
+        this.toggleChat = this.toggleChat.bind(this);
 
         EventDispatcher.listen("error", this.handleError);
         EventDispatcher.listen("irc.message", this.handleNewMessage);
@@ -58,6 +60,9 @@ class Chat extends React.Component<ChatProps, ChatState> {
                     this.chatLog = el;
                 }}
             >
+                <span id="chatToggle" onClick={this.toggleChat}>
+                    Toggle chat
+                </span>
                 <table className="chatLog" ref={(el) => (this.chat = el)}>
                     <tbody>
                         {this.state.logs.slice(-1000).map((log) => log.line)}
@@ -127,6 +132,18 @@ class Chat extends React.Component<ChatProps, ChatState> {
         );
     }
 
+    private toggleChat(e: React.MouseEvent) {
+        const caseWrapper: HTMLDivElement | null = document.querySelector("div#case-cards");
+        if (this.chatLog && caseWrapper) {
+            const size = this.state.visible ? "45px" : "25vh";
+            this.chatLog.style.top = `calc(100vh - ${size})`;
+            if (caseWrapper) {
+                caseWrapper.style.marginBottom = `${size}`;
+            }
+            this.setState(update(this.state, { visible: { $set: !this.state.visible } }));
+        }
+    }
+
     private async handleNickChange(data: NickChange) {
         if (Chat.users[data.raw.user]) {
             Chat.users[data.nick] = Chat.getNickColour(data.raw.user);
@@ -140,13 +157,14 @@ class Chat extends React.Component<ChatProps, ChatState> {
 
     public static getNickColour(nick: string) {
         if (!Chat.users[nick]) {
+            Chat.users[nick] = Chat.randomColour();
             Chat.worker.postMessage({
                 id: nick,
                 event: "colour",
-                data: nick,
+                data: Chat.users[nick],
             });
         }
-        return "inherit";
+        return Chat.users[nick];
     }
 
     private static randomColour() {
