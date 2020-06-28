@@ -29,26 +29,6 @@ class Chat extends React.Component<ChatProps, ChatState> {
         this.handleNewMessage = this.handleNewMessage.bind(this);
         this.handleNickChange = this.handleNickChange.bind(this);
         this.toggleChat = this.toggleChat.bind(this);
-
-        EventDispatcher.listen("error", this.handleError);
-        EventDispatcher.listen("irc.message", this.handleNewMessage);
-        EventDispatcher.listen("nickchange", this.handleNickChange);
-
-        EventDispatcher.listen("chatworker.format", async (data: Log) => {
-            if (this.state.logs.findIndex((log) => log.uid === data.uid) > -1) return;
-            this.setState(
-                update(this.state, {
-                    logs: {
-                        $push: [
-                            {
-                                uid: data.uid,
-                                line: this.renderLog(data),
-                            },
-                        ],
-                    },
-                })
-            );
-        });
     }
 
     render() {
@@ -94,6 +74,25 @@ class Chat extends React.Component<ChatProps, ChatState> {
 
     componentDidMount() {
         this.setState({ ready: true });
+        EventDispatcher.listen("error", this.handleError);
+        EventDispatcher.listen("irc.message", this.handleNewMessage);
+        EventDispatcher.listen("nickchange", this.handleNickChange);
+
+        EventDispatcher.listen("chatworker.format", async (data: Log) => {
+            if (this.state.logs.findIndex((log) => log.uid === data.uid) > -1) return;
+            this.setState(
+                update(this.state, {
+                    logs: {
+                        $push: [
+                            {
+                                uid: data.uid,
+                                line: this.renderLog(data),
+                            },
+                        ],
+                    },
+                })
+            );
+        });
     }
 
     componentDidUpdate() {
@@ -184,7 +183,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
                 });
                 (Chat.worker as any).addEventListener("message", (e: any) => {
                     const { id, event, data } = e.data;
-                    console.log("script: ", id, event, data);
+                    // console.log("script: ", id, event, data);
                     switch (event) {
                         case "colour":
                             Chat.users[id] = data;

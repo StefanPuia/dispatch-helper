@@ -7,17 +7,22 @@ import { NewCase, Callout } from "../core/log.parser";
 import Utils from "../core/utils";
 import CaseCard from "./case.card";
 import { CaseCardProps, CaseCardState } from "./case.card";
+import update from "immutability-helper";
 
 export interface CaseControllerProps {}
 
-export interface CaseControllerState {}
+export interface CaseControllerState {
+    cases: Array<JSX.Element>;
+}
 
 class CaseController extends React.Component<CaseControllerProps, CaseControllerState> {
-    private cases: Array<JSX.Element> = [];
     public static caseData: { [id: number]: { key: string; props?: CaseCardProps; state?: CaseCardState } } = {};
 
     constructor(props: CaseControllerProps) {
         super(props);
+        this.state = {
+            cases: [],
+        };
         this.handleCaseMD = this.handleCaseMD.bind(this);
         this.handleCloseCase = this.handleCloseCase.bind(this);
         this.handleNewCase = this.handleNewCase.bind(this);
@@ -26,17 +31,38 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
     render() {
         return (
             <div id="case-cards-wrapper">
-                <div id="case-cards">{this.cases}</div>
+                <div id="case-cards">{this.state.cases}</div>
             </div>
         );
     }
 
+    private caseSorter(a: JSX.Element, b: JSX.Element) {
+        const A = CaseController.caseData[a.props.id];
+        const B = CaseController.caseData[b.props.id];
+        if (A?.state && B?.state) {
+            if (A.state.active < B.state.active) return 1;
+            if (A.state.active > B.state.active) return -1;
+            if (A.state.cr < B.state.cr) return 1;
+            if (A.state.cr > B.state.cr) return -1;
+        } else {
+            if (a.props.cr < b.props.cr) return 1;
+            if (a.props.cr > b.props.cr) return -1;
+        }
+        return a.props.created.getTime() - b.props.created.getTime();
+    }
+
     private removeCase(data: Callout) {
-        const index = this.cases.findIndex((c: any) => c.props.id === data.id);
+        const index = this.state.cases.findIndex((c: any) => c.props.id === data.id);
         if (index > -1) {
             if (data.rat && !CaseController.caseData[data.id].state?.rats[data.rat]) return;
             delete CaseController.caseData[data.id];
-            this.cases.splice(index, 1);
+            this.setState(
+                update(this.state, {
+                    cases: {
+                        $splice: [[index, 1]],
+                    },
+                })
+            );
             this.forceUpdate();
         }
     }
@@ -51,7 +77,8 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
 
     private async handleNewCase(data: NewCase) {
         const key = Utils.getUniqueKey("case-card");
-        this.cases.push(
+        const cases = this.state.cases;
+        cases.push(
             <CaseCard
                 key={key}
                 caseKey={key}
@@ -69,13 +96,28 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         CaseController.caseData[data.id] = {
             key: key,
         };
-        this.forceUpdate();
+        this.setState(
+            update(this.state, {
+                cases: {
+                    $set: cases.sort(this.caseSorter),
+                },
+            })
+        );
     }
 
     componentDidMount() {
         EventDispatcher.listen("callout.newcase", this.handleNewCase);
         EventDispatcher.listen("case.closed", this.handleCloseCase);
         EventDispatcher.listen("case.md", this.handleCaseMD);
+        EventDispatcher.listen("case.update", async (caseId: number) => {
+            this.setState(
+                update(this.state, {
+                    cases: {
+                        $set: this.state.cases.sort(this.caseSorter),
+                    },
+                })
+            );
+        });
     }
 
     public static getCaseNumberForNick(nick: string): number | undefined {

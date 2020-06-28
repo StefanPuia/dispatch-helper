@@ -63,7 +63,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             system: this.props.system,
             sysconf: this.props.sysconf,
             platform: this.props.platform,
-            unread: false,
+            unread: true,
         };
 
         this.closeCase = this.closeCase.bind(this);
@@ -87,13 +87,13 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.setUnread = this.setUnread.bind(this);
         this.setWrMinus = this.setWrMinus.bind(this);
         this.setWrPlus = this.setWrPlus.bind(this);
-
-        for (const handler of this.getEventHandlers()) {
-            EventDispatcher.listen(handler[0], handler[1]);
-        }
     }
 
     render() {
+        if (CaseController.caseData[this.props.id]) {
+            CaseController.caseData[this.props.id].props = this.props;
+            CaseController.caseData[this.props.id].state = this.state;
+        }
         return (
             <div
                 key={this.props.caseKey}
@@ -327,6 +327,10 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         };
         updateObject[stateName] = { $set: state };
         this.updateState(updateObject);
+
+        if (stateName === "active") {
+            EventDispatcher.dispatch("case.update", this, this.props.id);
+        }
     }
 
     private async handleNickChange(data: NickChange) {
@@ -445,8 +449,14 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     componentDidMount() {
         this.mounted = true;
-        CaseController.caseData[this.props.id].props = this.props;
-        CaseController.caseData[this.props.id].state = this.state;
+        if (CaseController.caseData[this.props.id]) {
+            CaseController.caseData[this.props.id].props = this.props;
+            CaseController.caseData[this.props.id].state = this.state;
+        }
+        EventDispatcher.dispatch("case.update", this, this.props.id);
+        for (const handler of this.getEventHandlers()) {
+            EventDispatcher.listen(handler[0], handler[1]);
+        }
     }
 }
 
