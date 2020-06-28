@@ -28,6 +28,9 @@ module.exports = (connections) => {
 
     client.addListener("raw", (raw) => {
         sendToClients(JSON.stringify(raw), connections);
+        if (raw && raw.rawCommand === "PRIVMSG" && raw.args && raw.args[0] === config["irc-nick"]) {
+            notify(client, `${raw.nick || ""}: ${raw.args[1] || JSON.stringify(raw)}`);
+        }
     });
 
     client.addListener("error", function (message) {
