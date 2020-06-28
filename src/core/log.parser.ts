@@ -238,22 +238,22 @@ export default class LogParser {
             } as BaseMessage);
         });
 
-        if (message.user === "MechaSqueak[BOT]") {
-            this.onMatch(message, "ratsignal", (m) => {
-                parsed = true;
-                EventDispatcher.dispatch(`callout.newcase`, this, {
-                    ...baseMessage,
-                    id: parseInt(m.case),
-                    client: m.client,
-                    system: m.system,
-                    sysconf: !m.sysconf,
-                    platform: m.platform,
-                    cr: m.oxygen === "NOT OK",
-                    lang: m.lang,
-                    nick: m.nick || m.client,
-                } as NewCase);
-            });
-        }
+        // if (message.user === "MechaSqueak[BOT]") {
+        this.onMatch(message, "ratsignal", (m) => {
+            parsed = true;
+            EventDispatcher.dispatch(`callout.newcase`, this, {
+                ...baseMessage,
+                id: parseInt(m.case),
+                client: m.client,
+                system: m.system,
+                sysconf: !m.sysconf,
+                platform: m.platform,
+                cr: m.oxygen === "NOT OK",
+                lang: m.lang,
+                nick: m.nick || m.client,
+            } as NewCase);
+        });
+        // }
 
         if (!parsed) {
             this.onMatch(message, "intelliGrab", (m) => {
