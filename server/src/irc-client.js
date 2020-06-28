@@ -1,11 +1,10 @@
 const irc = require("irc");
 const config = require("./config.json");
-const fs = require("fs");
 
 module.exports = (connections) => {
     const client = new irc.Client("irc.fuelrats.com", config["irc-nick"], {
         port: "+6667",
-        realName: "dispatch web helper",
+        realName: config["irc-realname"],
 
         sasl: true,
         userName: config["irc-name"],
@@ -29,9 +28,6 @@ module.exports = (connections) => {
 
     client.addListener("raw", (raw) => {
         sendToClients(JSON.stringify(raw), connections);
-        // fs.appendFile("log.txt", JSON.stringify(raw) + ",\n", function (err) {
-        //     if (err) console.error(err);
-        // });
     });
 
     client.addListener("error", function (message) {
@@ -39,12 +35,12 @@ module.exports = (connections) => {
     });
 
     client.connect(0, () => {
-        client.say("Stephano2013[PC]", "connected");
+        notify(client, "connected");
         client.join("#fuelrats", () => {
-            client.say("Stephano2013[PC]", "connected to fuelrats");
+            notify(client, "connected to fuelrats");
         });
         client.join("#ratchat", () => {
-            client.say("Stephano2013[PC]", "connected to ratchat");
+            notify(client, "connected to ratchat");
         });
     });
 };
@@ -53,6 +49,17 @@ function sendToClients(data, connections) {
     for (const conn of connections) {
         try {
             conn.send(data);
+        } catch (err) {
+            console.log(err.message);
+        }
+    }
+}
+
+function notify(client, message) {
+    const targets = config["irc-notify"];
+    for (const target of targets) {
+        try {
+            client.say(target, message);
         } catch (err) {
             console.log(err.message);
         }

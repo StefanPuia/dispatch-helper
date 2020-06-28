@@ -2,7 +2,6 @@
 
 :root {
     --chat-height: 30vh;
-    --cases-height: calc(100vh - var(--chat-height) - 80px);
 }
 
 body {
@@ -18,14 +17,20 @@ a:hover {
     color: #eba91c;
 }
 
+div#root {
+    /* width: 100vw; */
+}
+
 #root>div#chat {
     position: fixed;
     left: 0;
-    right: 0;
-    top: 65vh;
+    right: -20px;
+    top: 75vh;
     bottom: 0;
     padding: 0 0 10px 0;
     background-color: #0f0f0f;
+    z-index: 10;
+    border-top: solid 1px black;
 }
 
 table.chatLog {
@@ -40,10 +45,6 @@ table.chatLog tr td:nth-child(2) {
     width: 15em;
     text-align: right;
     padding-right: 15px;
-}
-
-div#root {
-    width: 100vw;
 }
 
 div#errors {
@@ -63,7 +64,7 @@ div#errors div.error {
 }
 
 a#bugreport {
-    position: absolute;
+    position: fixed;
     bottom: 10px;
     right: 30px;
 }

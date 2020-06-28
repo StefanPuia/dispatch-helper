@@ -10,7 +10,7 @@ import App from "../App";
 export interface ChatProps {}
 
 export interface ChatState {
-    logs: Array<Log>;
+    logs: Array<{ uid: string; line: JSX.Element }>;
     ready: boolean;
 }
 
@@ -18,6 +18,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
     public static users: { [name: string]: string } = {};
     private chatLog: HTMLDivElement | null = null;
     private chat: HTMLDivElement | null = null;
+    private static worker: Worker;
 
     constructor(props: ChatProps) {
         super(props);
@@ -30,6 +31,22 @@ class Chat extends React.Component<ChatProps, ChatState> {
         EventDispatcher.listen("error", this.handleError);
         EventDispatcher.listen("irc.message", this.handleNewMessage);
         EventDispatcher.listen("nickchange", this.handleNickChange);
+
+        EventDispatcher.listen("chatworker.format", async (data: Log) => {
+            if (this.state.logs.findIndex((log) => log.uid === data.uid) > -1) return;
+            this.setState(
+                update(this.state, {
+                    logs: {
+                        $push: [
+                            {
+                                uid: data.uid,
+                                line: this.renderLog(data),
+                            },
+                        ],
+                    },
+                })
+            );
+        });
     }
 
     render() {
@@ -43,7 +60,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
             >
                 <table className="chatLog" ref={(el) => (this.chat = el)}>
                     <tbody>
-                        {this.state.logs.slice(-1000).map((log) => this.renderLog(log))}
+                        {this.state.logs.slice(-1000).map((log) => log.line)}
                         <tr></tr>
                     </tbody>
                 </table>
@@ -54,12 +71,14 @@ class Chat extends React.Component<ChatProps, ChatState> {
     private renderLog(log: Log) {
         return (
             <tr key={Utils.getUniqueKey("chat-log")}>
-                <td>{moment(log.time).format("HH:mm:ss")}</td>
+                <td>{moment(log.time || undefined).format("HH:mm:ss")}</td>
                 <td style={{ color: Chat.getNickColour(log.user), fontWeight: "bold" }}>
                     {log.user}
                     {this.isMainChannel(log)}
                 </td>
-                <td>{Chat.formatChatText(log.text)}</td>
+                <td>
+                    <span dangerouslySetInnerHTML={{ __html: log.text }}></span>
+                </td>
             </tr>
         );
     }
@@ -79,28 +98,28 @@ class Chat extends React.Component<ChatProps, ChatState> {
     }
 
     private async handleNewMessage(log: Log) {
-        if (this.state.ready) {
-            this.setState(
-                update(this.state, {
-                    logs: {
-                        $push: [log],
-                    },
-                })
-            );
-        }
+        EventDispatcher.dispatch("chatworker.requestFormat", this, {
+            id: log.uid,
+            event: "format",
+            data: log,
+        });
     }
 
     private async handleError(errorText: string) {
+        const errorUID = `error-${new Date().getTime()}-${Math.floor(Math.random() * 10000)}`;
         this.setState(
             update(this.state, {
                 logs: {
                     $push: [
                         {
-                            uid: `error-${new Date().getTime()}-${Math.floor(Math.random() * 10000)}`,
-                            time: new Date(),
-                            text: `<span style="color: red">${errorText}</span>`,
-                            user: "SYSTEM",
-                            type: "event",
+                            uid: errorUID,
+                            line: this.renderLog({
+                                uid: errorUID,
+                                time: new Date(),
+                                text: `<span style="color: red">${errorText}</span>`,
+                                user: "SYSTEM",
+                                type: "event",
+                            }),
                         },
                     ],
                 },
@@ -112,34 +131,22 @@ class Chat extends React.Component<ChatProps, ChatState> {
         if (Chat.users[data.raw.user]) {
             Chat.users[data.nick] = Chat.getNickColour(data.raw.user);
         }
-        if (this.state.ready) {
-            this.setState(
-                update(this.state, {
-                    logs: {
-                        $push: [data.raw],
-                    },
-                })
-            );
-        }
-    }
-
-    public static formatChatText(text: string) {
-        for (const user of Object.keys(Chat.users).sort((a, b) => b.length - a.length)) {
-            const escaped = user.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
-            text = text.replace(
-                new RegExp(`([ ,:>]|^)${escaped}([< ,:]|$)`, "g"),
-                `$1<span style="color: ${Chat.getNickColour(user)}; font-weight: bold">${user}</span>$2`
-            );
-        }
-        text = text.replace(/(https?:\/\/\S+)/g, `<a href="$1" target="_blank">$1</a>`);
-        return <span dangerouslySetInnerHTML={{ __html: text }}></span>;
+        EventDispatcher.dispatch("chatworker.requestFormat", this, {
+            id: data.uid,
+            event: "format",
+            data: data.raw,
+        });
     }
 
     public static getNickColour(nick: string) {
         if (!Chat.users[nick]) {
-            Chat.users[nick] = Chat.randomColour();
+            Chat.worker.postMessage({
+                id: nick,
+                event: "colour",
+                data: nick,
+            });
         }
-        return Chat.users[nick];
+        return "inherit";
     }
 
     private static randomColour() {
@@ -149,9 +156,37 @@ class Chat extends React.Component<ChatProps, ChatState> {
             return Math.floor(Math.random() * (256 - min)) + min;
         }
     }
+
+    public static init() {
+        if (!Chat.worker) {
+            Chat.worker = new Worker("chat.worker.js");
+            try {
+                EventDispatcher.listen("chatworker.requestFormat", async (data: any) => {
+                    Chat.worker.postMessage(data);
+                });
+                (Chat.worker as any).addEventListener("message", (e: any) => {
+                    const { id, event, data } = e.data;
+                    console.log("script: ", id, event, data);
+                    switch (event) {
+                        case "colour":
+                            Chat.users[id] = data;
+                            break;
+
+                        case "format":
+                            EventDispatcher.dispatch("chatworker.format", this, data);
+                            break;
+                    }
+                });
+            } catch (err) {
+                EventDispatcher.dispatch("error", this, err.message);
+            }
+        }
+    }
 }
 
 export default Chat;
+
+Chat.init();
 
 type User = {
     colour: string;

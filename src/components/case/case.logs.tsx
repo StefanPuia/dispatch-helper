@@ -26,6 +26,7 @@ class CaseLogs extends React.Component<CaseLogsProps, CaseLogsState> {
         this.state = { messages: [] };
         this.grabChat = this.grabChat.bind(this);
         this.grabClientMessages = this.grabClientMessages.bind(this);
+        this.appendFormattedMessage = this.appendFormattedMessage.bind(this);
     }
 
     render() {
@@ -67,19 +68,10 @@ class CaseLogs extends React.Component<CaseLogsProps, CaseLogsState> {
     private async grabChat(data: BaseMessage) {
         if (data.id === this.props.id) {
             if (this.messageAlreadyRecorded(data)) return;
-            this.updateState({
-                messages: {
-                    $push: [
-                        {
-                            uid: data.uid,
-                            elem: (
-                                <>
-                                    {Chat.formatChatText(data.raw.user)}: {Chat.formatChatText(data.raw.text)}
-                                </>
-                            ),
-                        },
-                    ],
-                },
+            EventDispatcher.dispatch("chatworker.requestFormat", this, {
+                id: data.raw.uid,
+                event: "format",
+                data: { ...data.raw, id: this.props.id },
             });
             EventDispatcher.dispatch("case.unread", this, { id: data.id });
         }
@@ -97,28 +89,45 @@ class CaseLogs extends React.Component<CaseLogsProps, CaseLogsState> {
         const isMechaSqueak = data.user === "MechaSqueak[BOT]";
         if (!isMechaSqueak && (isClient || isAssignedRat || containsClientName)) {
             if (this.messageAlreadyRecorded(data)) return;
-            this.updateState({
-                messages: {
-                    $push: [
-                        {
-                            uid: data.uid,
-                            elem: (
-                                <>
-                                    {Chat.formatChatText(data.user)}: {Chat.formatChatText(data.text)}
-                                </>
-                            ),
-                        },
-                    ],
-                },
+            EventDispatcher.dispatch("chatworker.requestFormat", this, {
+                id: data.uid,
+                event: "format",
+                data: { ...data, id: this.props.id },
             });
             EventDispatcher.dispatch("case.unread", this, { id: this.props.id });
         }
+    }
+
+    private async appendFormattedMessage(data: any) {
+        if (data.id !== this.props.id) return;
+        this.updateState({
+            messages: {
+                $push: [
+                    {
+                        uid: data.uid,
+                        elem: (
+                            <>
+                                <span
+                                    style={{
+                                        color: Chat.getNickColour(data.user),
+                                    }}
+                                >
+                                    {data.user}
+                                </span>
+                                : <span dangerouslySetInnerHTML={{ __html: data.text }}></span>
+                            </>
+                        ),
+                    },
+                ],
+            },
+        });
     }
 
     private getEventHandlers(): Array<[string, any]> {
         return [
             ["case.intelligrab", this.grabChat],
             ["irc.message", this.grabClientMessages],
+            ["chatworker.format", this.appendFormattedMessage],
         ];
     }
 

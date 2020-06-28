@@ -1,26 +1,22 @@
 div#case-cards-wrapper {
-    width: 100vw;
-    overflow-x: scroll;
-    padding: 20px 0;
-    height: calc(100vh - 100px);
+    padding: 10px 5px;
+    height: calc(100vh - 50px);
 }
 
 div#case-cards {
-    width: auto;
     grid-area: cases;
-    white-space: nowrap;
+    margin-bottom: 25vh;
 }
 
 div.case-card {
-    margin-left: 10px;
-    margin-right: 10px;
+    margin: 0 5px 10px 5px;
     font-size: 15px;
-    width: 400px;
-    height: var(--cases-height);
+    width: 420px;
+    height: 450px;
     border: solid 1px black;
     display: inline-grid;
     padding: 0 15px;
-    grid-template-rows: 60px 100px 1fr;
+    grid-template-rows: 60px minmax(100px, auto) 1fr;
     grid-template-areas: "header""body""footer";
     position: relative;
 }

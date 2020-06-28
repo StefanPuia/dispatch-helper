@@ -1,6 +1,8 @@
 {
     "disptach-port": 45362,
     "irc-name": "Steph",
-    "irc-nick": "Steph[mobile]",
+    "irc-nick": "Federat",
+    "irc-realname": "realname",
+    "irc-notify": ["Stephano2013", "Steph[NDD]", "Steph[away]"],
     "irc-password": ""
 }
