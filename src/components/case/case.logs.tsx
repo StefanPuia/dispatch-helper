@@ -101,7 +101,7 @@ class CaseLogs extends React.Component<CaseLogsProps, CaseLogsState> {
     }
 
     private async appendFormattedMessage(data: any) {
-        if (data.id !== this.props.id) return;
+        if (data.id !== this.props.id || this.messageAlreadyRecorded(data)) return;
         this.updateState({
             messages: {
                 $push: [

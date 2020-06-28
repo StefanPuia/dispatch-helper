@@ -15,30 +15,29 @@ export default class LogParser {
         bcRev: /(?:bc|wb|beacon)\s*(?<status>\+|-).*?(?:#|case)?\s*(?<case>\d+)/i,
         stdn: /(?:(?:#|case)?\s*(?<case>\d+).*?)?(?:stnd|stdn|standing down|nvm|nevermind)/i,
         stdnRev: /(?:stnd|stdn|standing down|nvm|nevermind)(?:.*?(?:#|case)?\s*(?<case>\d+))?/i,
-        fuel: /(?:#|case)?\s*(?<case>\d+).*?(?:fuel)\s*(?<status>\+|-)/i,
-        fuelRev: /(?:fuel)\s*(?<status>\+|-).*?(?:#|case)?\s*(?<case>\d+)/i,
+        fuel: /(?:#|case)?\s*(?<case>\d+).*?(?:fuel|fl)\s*(?<status>\+|-)/i,
+        fuelRev: /(?:fuel|fl)\s*(?<status>\+|-).*?(?:#|case)?\s*(?<case>\d+)/i,
         ratsignal: new RegExp(
             "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+) " +
-                "\\((?:(?:\\d+\\.\\d+ LY from \\w+)|(?<sysconf>(?:not in Fuelrats System Database)|(?:too short to verify)))\\) - " +
+                "\\((?:(?:\\d+\\.\\d+ LY from .+?)|(?<sysconf>(?:not in Fuelrats System Database)|(?:too short to verify)))\\) - " +
                 "Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK) - Language: .+? \\((?<lang>.+?)\\)\\s+" +
                 "(?:- IRC Nickname: (?<nick>.+?))?\\(Case #(?<case>\\d+)\\) .+",
             "i"
         ),
         closed: /^!(?:close|clear)\s+(?:(?<case>\d+)|(?<client>\S+))(?:\s+(?<rat>.+))?/i,
-        // disconnect: /has quit \(.+\)/i,
-        // connect: /\(.+?\) has joined/i,
-        assign: /^!(?:go|assign)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<rats>.+)/i,
-        unassign: /^!unassign\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<rats>.+)/i,
-        active: /^!(?:in)?active\s+(?:(?<case>\d+)|(?<client>\S+))/i,
+        assign: /^!(?:go|assign|add)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<rats>.+)/i,
+        unassign: /^!(?:unassign|deassign|remove|rm|standdown)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<rats>.+)/i,
+        active: /^!(?:active|activate|inactive|deactivate)\s+(?:(?<case>\d+)|(?<client>\S+))/i,
         md: /^!md\s+(?:(?<case>\d+)|(?<client>\S+))\s+.+/i,
-        cr: /^!cr\s+(?:(?<case>\d+)|(?<client>\S+))/i,
-        sysconf: /#?(?<case>\d+).*?(?:sysconf|system confirmed)/i,
+        cr: /^!(?:cr|codered|casered)\s+(?:(?<case>\d+)|(?<client>\S+))/i,
+        sysconf: /#?(?<case>\d+).*?(?:(?:sysconf)|(?:sys conf)|(?:system confirmed))/i,
         sysconfRev: /(?:sysconf|system confirmed).*?#?(?<case>\d+)/i,
-        sys: /^!sys\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<system>.+)/i,
+        sys: /^!(?:sys|system|loc|location)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<system>.+)/i,
         intelliGrab: /(?:#|case)\s*(?<case>\d+)/i,
         // eslint-disable-next-line no-control-regex
         ircAction: /^\x01ACTION (.+)\x01$/,
-        // nickChange: /is now known as (?<newnick>.+)/i,
+
+        nick: /^!(?:nick|nickname|ircnick)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<newnick>.+)/i,
     };
 
     private constructor() {
