@@ -269,7 +269,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private handleCaseAssign(assign: boolean, data: CaseAssign) {
         const rats = this.state.rats;
-        if (data.id !== this.props.id) {
+        if (data.id !== this.props.id && assign) {
             for (const rat of data.rats) {
                 if (rats[rat] && !rats[rat].assigned) {
                     delete rats[rat];
@@ -278,12 +278,12 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         } else {
             for (const rat of data.rats) {
                 if (rat !== this.state.nick) {
-                    if (!rats[rat]) {
+                    if (!rats[rat] && assign) {
                         rats[rat] = {
                             assigned: assign,
                             state: {},
                         };
-                    } else {
+                    } else if (rats[rat]) {
                         rats[rat].assigned = assign;
                     }
                 }
