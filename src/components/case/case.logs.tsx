@@ -84,7 +84,9 @@ class CaseLogs extends React.Component<CaseLogsProps, CaseLogsState> {
                 .filter((rat) => this.props.caseState.rats[rat].assigned)
                 .indexOf(data.user) > -1;
         const containsClientName = data.text.match(
-            new RegExp(`(?:^|[^\\w\\d_])${this.props.caseState.nick}(?:$|[^\\w\\d_])`)
+            new RegExp(
+                `(?:^|[^\\w\\d_])${this.props.caseState.nick.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}(?:$|[^\\w\\d_])`
+            )
         );
         const isMechaSqueak = data.user === "MechaSqueak[BOT]";
         if (!isMechaSqueak && (isClient || isAssignedRat || containsClientName)) {

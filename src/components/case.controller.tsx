@@ -3,7 +3,7 @@ import "../style/case-card.css";
 import React from "react";
 
 import { EventDispatcher } from "../core/event.dispatcher";
-import { NewCase, BaseMessage } from "../core/log.parser";
+import { NewCase, Callout } from "../core/log.parser";
 import Utils from "../core/utils";
 import CaseCard from "./case.card";
 import { CaseCardProps, CaseCardState } from "./case.card";
@@ -31,20 +31,21 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         );
     }
 
-    private removeCase(data: BaseMessage) {
+    private removeCase(data: Callout) {
         const index = this.cases.findIndex((c: any) => c.props.id === data.id);
         if (index > -1) {
+            if (data.rat && !CaseController.caseData[data.id].state?.rats[data.rat]) return;
             delete CaseController.caseData[data.id];
             this.cases.splice(index, 1);
             this.forceUpdate();
         }
     }
 
-    private async handleCloseCase(data: BaseMessage) {
+    private async handleCloseCase(data: Callout) {
         this.removeCase(data);
     }
 
-    private async handleCaseMD(data: BaseMessage) {
+    private async handleCaseMD(data: Callout) {
         this.removeCase(data);
     }
 

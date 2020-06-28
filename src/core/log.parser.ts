@@ -168,7 +168,7 @@ export default class LogParser {
                 ...callout,
                 rat: m.rat,
                 id: this.caseNickId(m.case, m.client),
-            } as BaseMessage);
+            } as Callout);
         });
 
         this.onMatch(message, "assign", (m) => {
