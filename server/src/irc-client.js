@@ -59,12 +59,5 @@ function sendToClients(data, connections) {
 }
 
 function notify(client, message) {
-    const targets = config["irc-notify"];
-    for (const target of targets) {
-        try {
-            client.say(target, message);
-        } catch (err) {
-            console.log(err.message);
-        }
-    }
+    console.log(message);
 }

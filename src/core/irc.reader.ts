@@ -10,7 +10,7 @@ export class IRCReader {
     }
 
     private static connectWS() {
-        IRCReader.WEBSOCKET = new WebSocket(`wss://dispatchws.stefanpuia.co.uk/`, "echo-protocol");
+        IRCReader.WEBSOCKET = new WebSocket(`ws://localhost:45362`, "echo-protocol");
         IRCReader.WEBSOCKET.onmessage = (evt: MessageEvent) => {
             try {
                 const data: any = JSON.parse(evt.data);

@@ -54,7 +54,7 @@ export class EventDispatcher {
 
     public static async dispatch(event: string, origin: any, data: any) {
         // const moduleName = (origin && origin.constructor && origin.constructor.name) || "unknown";
-        // console.log(`Dispatching '${event}' from '${moduleName}'`);
+        // console.log(`Dispatching '${event}' from `, origin);
         // console.log(event, data);
         return await EventDispatcher.getInstance().dispatch(event, origin, data);
     }

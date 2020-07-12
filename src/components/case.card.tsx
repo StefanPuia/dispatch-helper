@@ -18,7 +18,7 @@ export interface CaseCardProps {
     system: string;
     cr: boolean;
     sysconf: boolean;
-    platform: "PC" | "XB" | "PS";
+    platform: "PC" | "XB" | "PS4";
     caseKey: string;
 }
 
@@ -30,7 +30,7 @@ export interface CaseCardState {
     nick: string;
     system: string;
     sysconf: boolean;
-    platform: "PC" | "XB" | "PS";
+    platform: "PC" | "XB" | "PS4";
     unread: boolean;
 }
 
@@ -87,6 +87,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.setUnread = this.setUnread.bind(this);
         this.setWrMinus = this.setWrMinus.bind(this);
         this.setWrPlus = this.setWrPlus.bind(this);
+        this.setPlatform = this.setPlatform.bind(this);
     }
 
     render() {
@@ -307,7 +308,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private changeState(
-        stateName: "active" | "cr" | "sysconf" | "system",
+        stateName: "active" | "cr" | "sysconf" | "system" | "platform",
         data: BaseMessage,
         override?: any,
         useData?: boolean,
@@ -416,6 +417,12 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.changeState("system", data, undefined, true, "sys");
     }
 
+    private async setPlatform(data: any) {
+        let platform = data.platform.toUpperCase();
+        if (platform === "PS") platform = "PS4";
+        this.changeState("platform", data, platform);
+    }
+
     private getEventHandlers(): Array<[string, any]> {
         return [
             ["callout.fr+", this.setFrPlus],
@@ -437,6 +444,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             ["case.sys", this.setCaseSystem],
             ["nickchange", this.handleNickChange],
             ["case.unread", this.setUnread],
+            ["case.platform", this.setPlatform],
         ];
     }
 

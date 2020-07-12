@@ -38,6 +38,9 @@ export default class LogParser {
         ircAction: /^\x01ACTION (.+)\x01$/,
 
         nick: /^!(?:nick|nickname|ircnick)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<newnick>.+)/i,
+        platform: /^!(?<platform>xb|ps|pc)\s+(?:(?<case>\d+)|(?<client>\S+))/i,
+
+        force: /^=(?<nick>\S+)\s+(?<message>.+)$/i,
     };
 
     private constructor() {
@@ -238,7 +241,6 @@ export default class LogParser {
             } as BaseMessage);
         });
 
-        // if (message.user === "MechaSqueak[BOT]") {
         this.onMatch(message, "ratsignal", (m) => {
             parsed = true;
             EventDispatcher.dispatch(`callout.newcase`, this, {
@@ -253,7 +255,24 @@ export default class LogParser {
                 nick: m.nick || m.client,
             } as NewCase);
         });
-        // }
+
+        this.onMatch(message, "platform", (m) => {
+            parsed = true;
+            EventDispatcher.dispatch(`case.platform`, this, {
+                ...baseMessage,
+                id: this.caseNickId(m.case, m.client),
+                platform: m.platform,
+            } as BaseMessage);
+        });
+
+        this.onMatch(message, "force", (m) => {
+            EventDispatcher.dispatch(`irc.incoming`, this, {
+                uid: "force-" + message.uid,
+                nick: m.nick,
+                args: ["DIRECT", m.message],
+                command: "PRIVMSG",
+            });
+        });
 
         if (!parsed) {
             this.onMatch(message, "intelliGrab", (m) => {
@@ -341,7 +360,7 @@ export interface NewCase extends BaseMessage {
     client: string;
     system: string;
     sysconf: boolean;
-    platform: "PC" | "XB" | "PS";
+    platform: "PC" | "XB" | "PS4";
     cr: boolean;
     lang: string;
     nick: string;
