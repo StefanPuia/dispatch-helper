@@ -1,5 +1,6 @@
 import { EventDispatcher } from "./core/event.dispatcher";
 import Chat from "./components/chat";
+import sha256 from "sha256";
 
 declare global {
     interface Window {
@@ -39,9 +40,6 @@ export default class TestDispatch {
         await EventDispatcher.queuePromises(
             TestDispatch.getTestData().map((t: any) => async () => {
                 await EventDispatcher.dispatch("pause", null, "100");
-                if (["irc.message"].indexOf(t.event) > -1) {
-                    t.data.uid = Math.random();
-                }
                 return EventDispatcher.dispatch(t.event, null, t.data);
             }),
             this,
@@ -100,16 +98,7 @@ export default class TestDispatch {
             [`steph`, `!close ${id} Rat_2`],
         ];
         for (const [user, message] of flow) {
-            events.push({
-                event: "irc.message",
-                data: {
-                    user: user,
-                    text: message,
-                    time: new Date(),
-                    type: "message",
-                    uid: user + message + new Date().getTime(),
-                },
-            });
+            events.push(this.makeMessageEvent(user, message));
         }
         return events;
     }
@@ -118,41 +107,41 @@ export default class TestDispatch {
         const events: Array<{ event: string; data: any }> = [];
         for (let i = 0; i < size; i++) {
             const user = "The quick brown fox jumps over the lazy dog 0123456789 " + i;
-            events.push({
-                event: "irc.message",
-                data: {
-                    user: user,
-                    text: "#69 " + Chat.getNickColour(user),
-                    time: new Date(),
-                    type: "message",
-                    uid: "a" + i,
-                },
-            });
+            events.push(this.makeMessageEvent(user, "#69 " + Chat.getNickColour(user)));
         }
         return events;
+    }
+
+    private static makeMessageEvent(from: string, message: string) {
+        return {
+            event: "irc.message",
+            data: {
+                user: from,
+                text: message,
+                time: new Date(),
+                type: "message",
+                uid: sha256(`${message}${new Date().getTime()}${Math.random()}`),
+            },
+        };
     }
 
     private static randomCases(size: number): Array<{ event: string; data: any }> {
         const cases: Array<{ event: string; data: any }> = [];
 
         for (let i = 0; i < size; i++) {
-            cases.push({
-                event: "irc.message",
-                data: {
-                    user: "MechaSqueak[BOT]",
-                    text:
-                        `RATSIGNAL - CMDR test_${i}` +
+            cases.push(
+                this.makeMessageEvent(
+                    "MechaSqueak[BOT]",
+                    `RATSIGNAL - CMDR test_${i}` +
                         ` - Reported System: ${TestDispatch.pickOne(TestDispatch.systems)} (${TestDispatch.pickOne(
                             TestDispatch.distance
                         )})` +
                         ` - Platform: ${TestDispatch.pickOne(TestDispatch.platform)} - O2: ${TestDispatch.pickOne(
                             TestDispatch.o2
                         )}` +
-                        ` - Language: ${TestDispatch.pickOne(TestDispatch.language)} (Case #${i}) (Y_SIGNAL)`,
-                    time: new Date(),
-                    type: "message",
-                },
-            });
+                        ` - Language: ${TestDispatch.pickOne(TestDispatch.language)} (Case #${i}) (Y_SIGNAL)`
+                )
+            );
         }
 
         return cases;

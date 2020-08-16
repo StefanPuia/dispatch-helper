@@ -86,8 +86,8 @@ div.case-card div.case-card-footer {
     white-space: normal;
 }
 
-div.case-card div.case-card-footer div.chat-row {
-    /* width: 1000px; */
+div.case-card div.case-card-footer div.chat-row>span:nth-child(2) {
+    word-break: break-word;
 }
 
 div.case-time {
