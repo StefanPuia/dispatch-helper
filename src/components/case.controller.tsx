@@ -3,7 +3,7 @@ import "../style/case-card.css";
 import React from "react";
 
 import { EventDispatcher } from "../core/event.dispatcher";
-import { NewCase, Callout } from "../core/log.parser";
+import { Callout, NewCase } from "../core/log.parser";
 import Utils from "../core/utils";
 import CaseCard from "./case.card";
 import { CaseCardProps, CaseCardState } from "./case.card";
@@ -26,6 +26,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         this.handleCaseMD = this.handleCaseMD.bind(this);
         this.handleCloseCase = this.handleCloseCase.bind(this);
         this.handleNewCase = this.handleNewCase.bind(this);
+        this.removeCase = this.removeCase.bind(this);
     }
 
     render() {
