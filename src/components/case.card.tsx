@@ -95,15 +95,16 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             CaseController.caseData[this.props.id].props = this.props;
             CaseController.caseData[this.props.id].state = this.state;
         }
+        const systemNote = Utils.getSystemNote(this.state.system);
         return (
             <div
                 key={this.props.caseKey}
-                className={
-                    "case-card" +
-                    (this.state.active ? "" : " case-inactive") +
-                    (this.state.cr ? " code-red" : "") +
-                    (this.state.unread ? " case-unread" : "")
-                }
+                className={[
+                    "case-card",
+                    Utils.ternary(!this.state.active, "case-inactive"),
+                    Utils.ternary(this.state.cr, "code-red"),
+                    Utils.ternary(this.state.unread, "case-unread"),
+                ].join(" ")}
                 onClick={(e: React.MouseEvent) => {
                     if (this.state.unread) {
                         this.updateState({ unread: { $set: false } });
@@ -130,10 +131,11 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                         #{this.props.id}
                     </div>
                     <div
-                        className="case-system"
+                        className={`case-system ${Utils.ternary(!!systemNote, "system-note")}`}
                         style={{
-                            color: this.state.sysconf ? "" : "red",
+                            color: Utils.ternary(!this.state.sysconf, "red"),
                         }}
+                        title={systemNote}
                     >
                         {this.state.system}
                     </div>

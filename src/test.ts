@@ -12,7 +12,7 @@ declare global {
 }
 
 export default class TestDispatch {
-    private static systems = ["CORE SYS SECTOR XJ-R A4-0", "Dormi", "Matet", "Rodetia", "Fuelum", "Sol"];
+    private static systems = ["CORE SYS SECTOR XJ-R A4-0", "Dromi", "Matet", "Rodetia", "Fuelum", "Sol"];
     private static distance = [
         "25.14 LY from Sol",
         "58.36 LY from Fuelum",
