@@ -18,9 +18,9 @@ export default class LogParser {
         fuel: /(?:#|case)?\s*(?<case>\d+).*?(?:fuel|fl)\s*(?<status>\+|-)/i,
         fuelRev: /(?:fuel|fl)\s*(?<status>\+|-).*?(?:#|case)?\s*(?<case>\d+)/i,
         ratsignal: new RegExp(
-            "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+) " +
-                "\\((?:(?:\\d+\\.\\d+ LY from .+?)|(?<sysconf>(?:not in Fuelrats System Database)|(?:too short to verify)))\\) - " +
-                "Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK) - Language: .+? \\((?<lang>.+?)\\)\\s+" +
+            "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+?)" +
+                "(?: \\((?:(?:\\d+\\.\\d+ LY from .+?)|(?<sysconf>(?:not in Fuelrats System Database)|(?:too short to verify)))\\))?" +
+                " - Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK) - Language: .+? \\((?<lang>.+?)\\)\\s+" +
                 "(?:- IRC Nickname: (?<nick>.+?))?\\(Case #(?<case>\\d+)\\) .+",
             "i"
         ),
