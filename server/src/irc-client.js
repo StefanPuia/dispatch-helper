@@ -1,5 +1,6 @@
 const irc = require("irc");
 const config = require("./config.json");
+const fs = require("fs");
 
 module.exports = (connections) => {
     const client = new irc.Client("irc.fuelrats.com", config["irc-nick"], {
@@ -59,5 +60,9 @@ function sendToClients(data, connections) {
 }
 
 function notify(client, message) {
-    console.log(message);
+    const messageLine = `${new Date().toISOString()} ${message}\n`;
+    console.log(messageLine);
+    fs.appendFile("irc.log", messageLine, (err) => {
+        if (err) console.error(err);
+    });
 }

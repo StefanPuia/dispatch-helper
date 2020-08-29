@@ -28,3 +28,4 @@ yarn-error.log*
 
 package-lock.json
 /server/package-lock.json
+/server/src/irc.log
