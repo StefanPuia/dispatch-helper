@@ -6,13 +6,14 @@ declare global {
     interface Window {
         dispatch: {
             dispatchEvent: any;
+            sendMessage: any;
         };
         TestDispatch: any;
     }
 }
 
 export default class TestDispatch {
-    private static systems = ["CORE SYS SECTOR XJ-R A4-0", "Dromi", "Matet", "Rodetia", "Fuelum", "Sol"];
+    private static systems = ["CORE SYS SECTOR XJ-R A4-0", "Dromi", "Matet", "Rodentia", "Fuelum", "Sol"];
     private static distance = [
         "25.14 LY from Sol",
         "58.36 LY from Fuelum",
@@ -35,6 +36,7 @@ export default class TestDispatch {
                     uid: Math.random(),
                 });
             },
+            sendMessage: this.sendMessage,
         };
         EventDispatcher.listen("pause", TestDispatch.pauseHandler);
         await EventDispatcher.queuePromises(
@@ -112,7 +114,7 @@ export default class TestDispatch {
         return events;
     }
 
-    private static makeMessageEvent(from: string, message: string) {
+    public static makeMessageEvent(from: string, message: string) {
         return {
             event: "irc.message",
             data: {
@@ -125,10 +127,16 @@ export default class TestDispatch {
         };
     }
 
+    public static sendMessage(from: string, message: string) {
+        const t = this.makeMessageEvent(from, message);
+        EventDispatcher.dispatch(t.event, null, t.data);
+    }
+
     private static randomCases(size: number): Array<{ event: string; data: any }> {
         const cases: Array<{ event: string; data: any }> = [];
+        const startN = Math.floor(Math.random() * 200) + 100;
 
-        for (let i = 0; i < size; i++) {
+        for (let i = startN; i < size + startN; i++) {
             cases.push(
                 this.makeMessageEvent(
                     "MechaSqueak[BOT]",

@@ -1,13 +1,15 @@
 import update from "immutability-helper";
 import React from "react";
+import CopyToClipboard from "react-copy-to-clipboard";
 
+import CaseHelper from "../core/case-helper";
 import { EventDispatcher } from "../core/event.dispatcher";
 import { BaseMessage, Callout, CalloutJumps, CaseAssign, NickChange } from "../core/log.parser";
 import Utils from "../core/utils";
+import CaseController from "./case.controller";
 import CaseDuration from "./case/case.duration";
 import CaseLogs from "./case/case.logs";
 import Chat from "./chat";
-import CaseController from "./case.controller";
 
 export interface CaseCardProps {
     id: number;
@@ -23,6 +25,7 @@ export interface CaseCardProps {
 }
 
 export interface CaseCardState {
+    id: number;
     rats: { [user: string]: CaseRatState };
     connected: boolean;
     active: boolean;
@@ -32,6 +35,10 @@ export interface CaseCardState {
     sysconf: boolean;
     platform: "PC" | "XB" | "PS4";
     unread: boolean;
+    prep: boolean;
+    prepLanguage?: string;
+    lang: string;
+    distanceToWaypoint?: string;
 }
 
 interface CaseRatState {
@@ -55,6 +62,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     constructor(props: CaseCardProps) {
         super(props);
         this.state = {
+            id: this.props.id,
             rats: {},
             connected: true,
             active: true,
@@ -64,6 +72,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             sysconf: this.props.sysconf,
             platform: this.props.platform,
             unread: true,
+            prep: false,
+            lang: this.props.lang,
         };
 
         this.closeCase = this.closeCase.bind(this);
@@ -88,6 +98,9 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.setWrMinus = this.setWrMinus.bind(this);
         this.setWrPlus = this.setWrPlus.bind(this);
         this.setPlatform = this.setPlatform.bind(this);
+        this.getAutoSpatch = this.getAutoSpatch.bind(this);
+        this.prepClient = this.prepClient.bind(this);
+        this.prepClientCR = this.prepClientCR.bind(this);
     }
 
     render() {
@@ -95,7 +108,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             CaseController.caseData[this.props.id].props = this.props;
             CaseController.caseData[this.props.id].state = this.state;
         }
-        const systemNote = Utils.getSystemNote(this.state.system);
+        const systemNote = CaseHelper.getSystemNote(this.state.system);
+        const autoSpatch = this.getAutoSpatch();
         return (
             <div
                 key={this.props.caseKey}
@@ -131,25 +145,46 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                         #{this.props.id}
                     </div>
                     <div
-                        className={`case-system ${Utils.ternary(!!systemNote, "system-note")}`}
+                        className={`case-system`}
                         style={{
                             color: Utils.ternary(!this.state.sysconf, "red"),
                         }}
-                        title={systemNote}
                     >
-                        {this.state.system}
+                        <CopyToClipboard key={Utils.getUniqueKey("CopyToClipboard")} text={this.state.system}>
+                            <span className={Utils.ternary(!!systemNote, "system-note")} title={systemNote}>
+                                {this.state.system}
+                            </span>
+                        </CopyToClipboard>
+                        <span style={{ paddingLeft: "1ch" }}>{this.state.distanceToWaypoint}</span>
                     </div>
                     <div></div>
                     <CaseDuration start={this.props.created.getTime()} />
                 </div>
                 <div className="case-card-body">{this.renderRats()}</div>
                 <CaseLogs key={this.props.caseKey} id={this.props.id} caseState={this.state} />
+                <div className="auto-spatch">
+                    {autoSpatch.map((auto) => {
+                        return (
+                            <CopyToClipboard key={Utils.getUniqueKey("CopyToClipboard")} text={auto.clipboard}>
+                                <button className="btn-auto-spatch" title={auto.clipboard}>
+                                    {auto.info}
+                                </button>
+                            </CopyToClipboard>
+                        );
+                    })}
+                </div>
             </div>
         );
     }
 
     private renderRats() {
-        return Object.keys(this.state.rats).map((ratName: string) => {
+        const rats = Object.keys(this.state.rats).sort((a, b) => {
+            if (this.state.rats[a].assigned && !this.state.rats[b].assigned) {
+                return -1;
+            }
+            return 1;
+        });
+        return rats.map((ratName: string) => {
             return (
                 <div className="rat-row" key={Utils.getUniqueKey("rat-row")}>
                     <div className="rat-name">
@@ -197,6 +232,10 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private getStatusOverride(rat: string, _status: string) {
         return `rat-status-${this.state.rats[rat].state[_status as RatState]}`;
+    }
+
+    private getAutoSpatch() {
+        return CaseHelper.buildAutoDispatch(this.state);
     }
 
     private closeCase() {
@@ -417,12 +456,41 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private async setCaseSystem(data: BaseMessage) {
         this.changeState("system", data, undefined, true, "sys");
+        this.setState({ sysconf: true });
+        this.getWaypointDistance();
     }
 
     private async setPlatform(data: any) {
         let platform = data.platform.toUpperCase();
         if (platform === "PS") platform = "PS4";
         this.changeState("platform", data, platform);
+    }
+
+    private async prepClient({ nick, language }: any) {
+        if (!this.state.cr && this.state.nick.toLowerCase() === (nick || "").toLowerCase()) {
+            this.setState({
+                prep: true,
+                prepLanguage: language || "EN",
+            });
+        }
+    }
+
+    private async prepClientCR({ nick, language }: any) {
+        if (this.state.cr && this.state.nick.toLowerCase() === (nick || "").toLowerCase()) {
+            this.setState({
+                prep: true,
+                prepLanguage: language || "EN",
+            });
+        }
+    }
+
+    private async getWaypointDistance() {
+        if (this.state.sysconf) {
+            const waypointString = await CaseHelper.getClosestWaypoint(this.state.system);
+            if (waypointString) {
+                this.setState({ distanceToWaypoint: waypointString });
+            }
+        }
     }
 
     private getEventHandlers(): Array<[string, any]> {
@@ -447,6 +515,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             ["nickchange", this.handleNickChange],
             ["case.unread", this.setUnread],
             ["case.platform", this.setPlatform],
+            ["case.prep", this.prepClient],
+            ["case.prepcr", this.prepClientCR],
         ];
     }
 
@@ -467,6 +537,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         for (const handler of this.getEventHandlers()) {
             EventDispatcher.listen(handler[0], handler[1]);
         }
+        this.getWaypointDistance();
     }
 }
 

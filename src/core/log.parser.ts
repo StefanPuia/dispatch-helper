@@ -34,11 +34,11 @@ export default class LogParser {
         sysconfRev: /(?:sysconf|system confirmed).*?#?(?<case>\d+)/i,
         sys: /^!(?:sys|system|loc|location)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<system>.+)/i,
         intelliGrab: /(?:#|case)\s*(?<case>\d+)/i,
-        // eslint-disable-next-line no-control-regex
-        ircAction: /^\x01ACTION (.+)\x01$/,
-
+        prep: /^!(?<prepType>(?:prep|pcquit|psquit|xquit))(?:-(?<language>\S+))?\s(?<nick>\S+)/i,
         nick: /^!(?:nick|nickname|ircnick)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<newnick>.+)/i,
         platform: /^!(?<platform>xb|ps|pc)\s+(?:(?<case>\d+)|(?<client>\S+))/i,
+        // eslint-disable-next-line no-control-regex
+        ircAction: /^\x01ACTION (.+)\x01$/,
 
         force: /^=(?<nick>\S+)\s+(?<message>.+)$/i,
     };
@@ -263,6 +263,16 @@ export default class LogParser {
                 id: this.caseNickId(m.case, m.client),
                 platform: m.platform,
             } as BaseMessage);
+        });
+
+        this.onMatch(message, "prep", (m) => {
+            parsed = true;
+            let event = m.prepType === "prep" ? `case.prep` : `case.prepcr`;
+            EventDispatcher.dispatch(event, this, {
+                ...baseMessage,
+                nick: m.nick,
+                language: m.language,
+            });
         });
 
         this.onMatch(message, "force", (m) => {
