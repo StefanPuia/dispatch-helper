@@ -27,10 +27,27 @@ module.exports = (connections) => {
         channelPrefixes: "&#",
     });
 
+    const regexList = [];
+    for (const regex of config["notify"] || []) {
+        try {
+            regexList.push(new RegExp(regex[0], regex[1]));
+        } catch (err) {
+            console.trace(err);
+        }
+    }
+
     client.addListener("raw", (raw) => {
         sendToClients(JSON.stringify(raw), connections);
-        if (raw && raw.rawCommand === "PRIVMSG" && raw.args && raw.args[0] === config["irc-nick"]) {
-            notify(client, `${raw.nick || ""}: ${raw.args[1] || JSON.stringify(raw)}`);
+        if (raw && raw.rawCommand === "PRIVMSG") {
+            if (raw.args && raw.args[0] === config["irc-nick"]) {
+                log(`${raw.nick || ""}: ${raw.args[1] || JSON.stringify(raw)}`);
+            } else if (raw.args[1]) {
+                for (const regex of regexList) {
+                    if (regex.test(raw.args[1])) {
+                        log(`${raw.nick || ""}: ${raw.args[1]}`);
+                    }
+                }
+            }
         }
     });
 
@@ -39,12 +56,12 @@ module.exports = (connections) => {
     });
 
     client.connect(0, () => {
-        notify(client, "connected");
+        log("connected");
         client.join("#fuelrats", () => {
-            notify(client, "connected to fuelrats");
+            log("connected to fuelrats");
         });
         client.join("#ratchat", () => {
-            notify(client, "connected to ratchat");
+            log("connected to ratchat");
         });
     });
 };
@@ -59,7 +76,7 @@ function sendToClients(data, connections) {
     }
 }
 
-function notify(client, message) {
+function log(message) {
     const messageLine = `${new Date().toISOString()} ${message}\n`;
     console.log(messageLine);
     fs.appendFile("irc.log", messageLine, (err) => {

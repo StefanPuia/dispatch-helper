@@ -3,6 +3,8 @@
     "irc-name": "Steph",
     "irc-nick": "Federat",
     "irc-realname": "realname",
-    "irc-notify": ["Stephano2013", "Steph[NDD]", "Steph[away]"],
-    "irc-password": ""
+    "irc-password": "",
+    "notify": [
+        ["steph|salty|federat", "i"]
+    ]
 }
