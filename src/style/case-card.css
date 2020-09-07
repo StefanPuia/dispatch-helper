@@ -5,7 +5,7 @@ div#case-cards-wrapper {
 
 div#case-cards {
     grid-area: cases;
-    margin-bottom: 25vh;
+    margin-bottom: 45px;
 }
 
 div.case-card {
@@ -62,10 +62,10 @@ div.case-card div.case-card-header div.case-system>span:first-child {
 }
 
 div.case-card div.case-card-header div.case-system>span:first-child:hover {
-    color: #ffb516a8;
+    color: var(--theme-fg-hover);
 }
 
-div.case-card div.case-card-header div.case-system.system-note {
+div.case-card div.case-card-header div.case-system>span:first-child.system-note {
     text-decoration: underline;
 }
 
@@ -81,8 +81,8 @@ div.case-card div.case-card-body div.rat-row {
 
 div.case-card button.btn-auto-spatch {
     background-color: #0000;
-    border: solid 1px black;
-    color: #9e9e9e;
+    border: solid 1px var(--theme-border-colour);
+    color: var(--theme-fg);
     cursor: pointer;
     height: 2em;
     margin: 2px 1px -1px 1px;
@@ -91,8 +91,8 @@ div.case-card button.btn-auto-spatch {
 }
 
 div.case-card button.btn-auto-spatch:hover {
-    background-color: #ffb516a8;
-    color: black;
+    background-color: var(--theme-bg-hover-alt);
+    color: var(--theme-fg-hover-alt);
 }
 
 div.case-card div.case-card-body div.rat-row div.rat-status-undefined {
@@ -138,28 +138,11 @@ div.case-card div.case-card-header div.case-number.platform-PC {
     color: orange;
 }
 
-@keyframes animation-unread {
-    0% {
-        background-color: #00000000;
-    }
-
-    50% {
-        background-color: #00ff59ad;
-    }
-
-    100% {
-        background-color: #00000000;
-    }
-}
-
 div.case-card.case-unread,
 div.case-card.code-red.case-unread,
 div.case-card.case-inactive.case-unread,
 div.case-card.code-red.case-inactive.case-unread {
     background-color: #003d15ab;
-    /* animation-name: animation-unread; */
-    /* animation-duration: 2s; */
-    /* animation-iteration-count: infinite; */
 }
 
 div.case-card.code-red.case-unread::before {

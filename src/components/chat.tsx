@@ -23,7 +23,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
 
     constructor(props: ChatProps) {
         super(props);
-        this.state = { logs: [], ready: false, visible: true };
+        this.state = { logs: [], ready: false, visible: false };
 
         this.handleError = this.handleError.bind(this);
         this.handleNewMessage = this.handleNewMessage.bind(this);
