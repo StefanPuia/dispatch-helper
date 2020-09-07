@@ -57,12 +57,13 @@ export default class TestDispatch {
     }
 
     private static getTestData() {
-        return [
-            ...TestDispatch.randomCases(3),
-            ...TestDispatch.caseFlow(0),
-            ...TestDispatch.caseFlow(1),
-            ...TestDispatch.caseFlow(2),
-        ];
+        const cases = 3;
+        const randomCases = TestDispatch.randomCases(cases);
+        let caseFlows: { event: string; data: any }[] = [];
+        for (let i = randomCases.startN; i < randomCases.startN + cases; i++) {
+            caseFlows = [...caseFlows, ...TestDispatch.caseFlow(i).slice(0, Math.floor(Math.random() * 18))];
+        }
+        return [...randomCases.cases, ...caseFlows];
         // return [];
     }
 
@@ -132,7 +133,7 @@ export default class TestDispatch {
         EventDispatcher.dispatch(t.event, null, t.data);
     }
 
-    private static randomCases(size: number): Array<{ event: string; data: any }> {
+    private static randomCases(size: number): { cases: Array<{ event: string; data: any }>; startN: number } {
         const cases: Array<{ event: string; data: any }> = [];
         const startN = Math.floor(Math.random() * 200) + 100;
 
@@ -152,7 +153,10 @@ export default class TestDispatch {
             );
         }
 
-        return cases;
+        return {
+            cases,
+            startN,
+        };
     }
 
     private static pickOne<T>(list: Array<T>): T {

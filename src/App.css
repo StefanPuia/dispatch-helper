@@ -85,3 +85,57 @@ a#bugreport {
     right: 120px;
     z-index: 15;
 }
+
+div#dispatchSearch {
+    position: fixed;
+    display: grid;
+    top: 5vh;
+    width: 100vw;
+    place-items: center;
+    z-index: 15;
+    opacity: 0.8;
+}
+
+div#dispatchSearch>input {
+    width: 650px;
+    border: solid 1px var(--theme-border-colour);
+    background-color: var(--theme-bg-light);
+    font-size: 34px;
+    padding: 5px;
+    color: var(--theme-fg);
+}
+
+div#dispatchSearch>section {
+    width: 650px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-height: 60vh;
+    overflow: auto;
+}
+
+div#dispatchSearch>section>div {
+    padding: 10px;
+    background-color: var(--theme-bg-light);
+    color: var(--theme-fg);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+div#dispatchSearch>section>div:hover {
+    color: var(--theme-fg-hover);
+}
+
+div#dispatchSearch>section>div>span {
+    padding-left: 2ch;
+}
+
+@media screen and (max-width: 700px) {
+
+    div#dispatchSearch>input,
+    div#dispatchSearch>section {
+        width: 80vw;
+    }
+}

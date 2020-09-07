@@ -7,11 +7,14 @@ import Chat from "./components/chat";
 import { IRCReader } from "./core/irc.reader";
 import LogParser from "./core/log.parser";
 import Utils from "./core/utils";
+import DispatchSearch from "./components/dispatch.search";
+import { EventDispatcher } from "./core/event.dispatcher";
 
 export interface AppProps {}
 
 export interface AppState {
     logs: Array<any>;
+    showSearch: boolean;
 }
 
 class App extends React.Component<AppProps, AppState> {
@@ -23,8 +26,10 @@ class App extends React.Component<AppProps, AppState> {
 
     constructor(props: AppProps) {
         super(props);
-        this.state = { logs: [] };
+        this.state = { logs: [], showSearch: false };
         this.handleFocus = this.handleFocus.bind(this);
+        this.handleKeyUp = this.handleKeyUp.bind(this);
+        this.handleSearchBlur = this.handleSearchBlur.bind(this);
 
         const { hidden, visibilityChange } = Utils.getVisibilityChangeByBrowser();
         App.visibility.hidden = hidden;
@@ -44,6 +49,7 @@ class App extends React.Component<AppProps, AppState> {
                 >
                     Bugs/Feedback
                 </a>
+                {this.state.showSearch ? <DispatchSearch /> : ""}
             </>
         );
     }
@@ -52,12 +58,26 @@ class App extends React.Component<AppProps, AppState> {
         App.isFocused = !document[App.visibility.hidden as "hidden"];
     }
 
+    private handleKeyUp(e: KeyboardEvent) {
+        if (["k", "s"].includes(e.key) && e.ctrlKey) {
+            e.preventDefault();
+            this.setState({ showSearch: true });
+            return false;
+        }
+    }
+
+    private async handleSearchBlur() {
+        this.setState({ showSearch: false });
+    }
+
     componentWilUnmount() {
         document.removeEventListener(App.visibility.handle, this.handleFocus);
     }
 
     componentDidMount() {
         document.addEventListener(App.visibility.handle, this.handleFocus, false);
+        document.addEventListener("keydown", this.handleKeyUp);
+        EventDispatcher.listen("dispatch-search.blur", this.handleSearchBlur);
 
         window.onbeforeunload = function (e: any) {
             e = e || window.event;
