@@ -40,7 +40,7 @@ export default abstract class DispatchTextBase {
     }
 
     public getSC() {
-        return this.fact("beacon");
+        return `${this.localize("!sc")} ${this.state.nick}`;
     }
 
     public getPrep() {
