@@ -52,6 +52,7 @@ export default class DatabaseUtil {
 
     public static async storeEDSMSystem(system: EDSMSystem) {
         return new Promise(async (resolve, reject) => {
+            system.name = system.name.toUpperCase();
             const existing = await this.getEDSMSystem(system.name);
             if (!existing) {
                 const transaction = (await this.getInstance()).database.transaction(["edsm_cache"], "readwrite");
@@ -69,7 +70,7 @@ export default class DatabaseUtil {
             (await this.getInstance()).database
                 .transaction("edsm_cache")
                 .objectStore("edsm_cache")
-                .get(systemName).onsuccess = (event: any) => {
+                .get(systemName.toUpperCase()).onsuccess = (event: any) => {
                 resolve(event.target.result);
             };
         });
