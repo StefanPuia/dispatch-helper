@@ -52,7 +52,7 @@ module.exports = (connections) => {
     });
 
     client.addListener("error", function (message) {
-        console.log("error: ", message);
+        log(`error: ${message}`);
     });
 
     client.connect(0, () => {
@@ -71,7 +71,7 @@ function sendToClients(data, connections) {
         try {
             conn.send(data);
         } catch (err) {
-            console.log(err.message);
+            log(err.message);
         }
     }
 }

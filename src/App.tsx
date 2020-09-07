@@ -9,6 +9,7 @@ import LogParser from "./core/log.parser";
 import Utils from "./core/utils";
 import DispatchSearch from "./components/dispatch.search";
 import { EventDispatcher } from "./core/event.dispatcher";
+import DatabaseUtil from "./core/database.util";
 
 export interface AppProps {}
 
@@ -31,6 +32,7 @@ class App extends React.Component<AppProps, AppState> {
         this.handleKeyUp = this.handleKeyUp.bind(this);
         this.handleSearchBlur = this.handleSearchBlur.bind(this);
 
+        DatabaseUtil.init();
         const { hidden, visibilityChange } = Utils.getVisibilityChangeByBrowser();
         App.visibility.hidden = hidden;
         App.visibility.handle = visibilityChange;

@@ -10,30 +10,19 @@ export default class DatabaseUtil {
 
     private constructor(callback: Function) {
         this.dbRequest = indexedDB.open(this.DB_NAME, this.VERSION_NUMBER);
-        this.dbRequest.onerror = this.errorHandler;
-        Promise.all([this.onDBUpgradeNeeded(this.dbRequest), this.onSuccess(this.dbRequest)])
-            .then(() => {
-                callback(null, this);
-            })
-            .catch((err) => {
-                callback(err);
-            });
-    }
-
-    private onDBUpgradeNeeded(dbRequest: IDBOpenDBRequest) {
-        return new Promise((resolve, reject) => {
-            dbRequest.onupgradeneeded = (event: any) => {
-                this.makeTables().then(resolve).catch(reject);
-            };
-        });
-    }
-
-    private onSuccess(dbRequest: IDBOpenDBRequest) {
-        return new Promise((resolve, reject) => {
-            dbRequest.onsuccess = (event: any) => {
-                this.database = event.target.result;
-            };
-        });
+        this.dbRequest.onerror = (event: any) => {
+            const err = new Error(event.target.error);
+            EventDispatcher.dispatch("error", this, err);
+            callback(err);
+        };
+        this.dbRequest.onupgradeneeded = (event: any) => {
+            this.database = event.target.result;
+            this.makeTables();
+        };
+        this.dbRequest.onsuccess = (event: any) => {
+            this.database = event.target.result;
+            callback();
+        };
     }
 
     private async makeTables() {
@@ -44,15 +33,14 @@ export default class DatabaseUtil {
         this.database.createObjectStore("edsm_cache", { keyPath: "name" });
     }
 
-    private errorHandler(ev: any) {
-        EventDispatcher.dispatch("error", this, ev.target.error);
+    public static async init() {
+        await this.getInstance();
     }
 
     private static getInstance(): Promise<DatabaseUtil> {
         return new Promise((resolve, reject) => {
             if (!this.INSTANCE) {
                 this.INSTANCE = new DatabaseUtil((err: any, db: any) => {
-                    console.log("init");
                     if (err) reject(err);
                     else resolve(db);
                 });

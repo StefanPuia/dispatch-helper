@@ -40,7 +40,6 @@ export default class Utils {
     }
 
     private static async getSystemFromEDSMApi(systemName: string): Promise<EDSMSystem> {
-        console.log("api");
         const res = await fetch("https://www.edsm.net/api-v1/system", {
             method: "POST",
             headers: {
@@ -57,7 +56,6 @@ export default class Utils {
     }
 
     private static async getSystemFromLocalCache(systemName: string): Promise<EDSMSystem | undefined> {
-        console.log("local");
         if (window.indexedDB) {
             return (await DatabaseUtil.getEDSMSystem(systemName)) as EDSMSystem;
         }

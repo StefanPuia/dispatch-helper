@@ -183,7 +183,6 @@ class Chat extends React.Component<ChatProps, ChatState> {
                 });
                 (Chat.worker as any).addEventListener("message", (e: any) => {
                     const { id, event, data } = e.data;
-                    // console.log("script: ", id, event, data);
                     switch (event) {
                         case "colour":
                             Chat.users[id] = data;
