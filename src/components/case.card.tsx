@@ -455,6 +455,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private async setCaseSystem(data: BaseMessage) {
+        if (data.id !== this.props.id) return;
         this.changeState("system", data, undefined, true, "sys");
         this.setState({ sysconf: true });
         this.getWaypointDistance();
