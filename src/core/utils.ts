@@ -1,3 +1,4 @@
+import DatabaseUtil from "./database.util";
 export default class Utils {
     public static getUniqueKey(prefix: string = "x") {
         return `${prefix}-${new Date().getTime()}-${Math.random() * 1000}`.replace(/\./, "");
@@ -29,28 +30,38 @@ export default class Utils {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2));
     }
 
-    public static getEDSMSystem(systemName: string): Promise<EDSMSystem> {
-        return new Promise((resolve, reject) => {
-            fetch("https://www.edsm.net/api-v1/system", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    showCoordinates: 1,
-                    systemName: systemName,
-                }),
-            })
-                .then((res) => res.json())
-                .then((system: EDSMSystem) => {
-                    if (system) {
-                        resolve(system);
-                    } else {
-                        reject("System not found");
-                    }
-                })
-                .catch(reject);
+    public static async getEDSMSystem(systemName: string): Promise<EDSMSystem> {
+        let system = (await this.getSystemFromLocalCache(systemName)) || (await this.getSystemFromEDSMApi(systemName));
+        if (system) {
+            return system;
+        } else {
+            throw new Error("System not found");
+        }
+    }
+
+    private static async getSystemFromEDSMApi(systemName: string): Promise<EDSMSystem> {
+        console.log("api");
+        const res = await fetch("https://www.edsm.net/api-v1/system", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                showCoordinates: 1,
+                systemName: systemName,
+            }),
         });
+        const system = await res.json();
+        DatabaseUtil.storeEDSMSystem(system);
+        return system;
+    }
+
+    private static async getSystemFromLocalCache(systemName: string): Promise<EDSMSystem | undefined> {
+        console.log("local");
+        if (window.indexedDB) {
+            return (await DatabaseUtil.getEDSMSystem(systemName)) as EDSMSystem;
+        }
+        return;
     }
 }
 

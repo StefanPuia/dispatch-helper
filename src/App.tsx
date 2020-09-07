@@ -45,7 +45,7 @@ class App extends React.Component<AppProps, AppState> {
                     id="bugreport"
                     target="_blank"
                     rel="noopener noreferrer"
-                    href="https://github.com/StefanPuia/fuelrats-dispatch-helper/issues"
+                    href="https://git.stefanpuia.co.uk/stefan.puia/dispatch-helper/issues"
                 >
                     Bugs/Feedback
                 </a>
