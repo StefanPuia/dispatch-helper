@@ -51,7 +51,9 @@ export default class Utils {
             }),
         });
         const system = await res.json();
-        DatabaseUtil.storeEDSMSystem(system);
+        if (system && system.name) {
+            DatabaseUtil.storeEDSMSystem(system);
+        }
         return system;
     }
 

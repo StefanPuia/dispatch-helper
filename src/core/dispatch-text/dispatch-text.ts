@@ -58,12 +58,12 @@ export default abstract class DispatchTextBase {
         return rats.map((rat) => rat.replace(/\[.+?\]/gi, ""));
     }
 
-    protected getAssignedRats() {
-        return this.fixRatNicks(Object.keys(this.state.rats).filter((rat) => this.state.rats[rat].assigned === true));
+    public getAssignedRats() {
+        return Object.keys(this.state.rats).filter((rat) => this.state.rats[rat].assigned === true);
     }
 
     protected getAssignedRatsQuote() {
-        return `"${this.getAssignedRats().join(`", "`)}"`;
+        return `"${this.fixRatNicks(this.getAssignedRats()).join(`", "`)}"`;
     }
 
     protected getRatNicksQuote(rats: string[] = []) {
@@ -82,16 +82,39 @@ export default abstract class DispatchTextBase {
         return this.ratCount() !== 1;
     }
 
-    protected getRatsNeedingFR() {
-        return this.getAssignedRats().filter((rat) => this.state.rats[rat] && this.state.rats[rat].state.fr !== true);
+    public getFuelRats() {
+        return this.getAssignedRats().filter((rat) => this.state.rats[rat] && this.state.rats[rat].state.fuel === true);
+    }
+
+    public getBCRats() {
+        return this.getAssignedRats().filter(
+            (rat) =>
+                this.state.rats[rat] &&
+                this.state.rats[rat].state.bc === true &&
+                this.state.rats[rat].state.fuel !== true
+        );
+    }
+
+    public getRatsNeedingFR() {
+        return this.getAssignedRats().filter(
+            (rat) =>
+                this.state.rats[rat] &&
+                this.state.rats[rat].state.fr !== true &&
+                this.state.rats[rat].state.fuel !== true
+        );
     }
 
     protected getRatsNeedingFRQuote() {
         return this.getRatNicksQuote(this.getRatsNeedingFR());
     }
 
-    protected getRatsNeedingWR() {
-        return this.getAssignedRats().filter((rat) => this.state.rats[rat] && this.state.rats[rat].state.wr !== true);
+    public getRatsNeedingWR() {
+        return this.getAssignedRats().filter(
+            (rat) =>
+                this.state.rats[rat] &&
+                this.state.rats[rat].state.wr !== true &&
+                this.state.rats[rat].state.fuel !== true
+        );
     }
 
     protected getRatsNeedingWRQuote() {

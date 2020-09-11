@@ -17,6 +17,7 @@ import DispatchTextRU from "./dispatch-text/dispatch-text-ru";
 import DispatchTextTR from "./dispatch-text/dispatch-text-tr";
 import { EventDispatcher } from "./event.dispatcher";
 import Utils, { Coords } from "./utils";
+import Config from "./config";
 
 export default class CaseHelper {
     private static LOCKED_SYSTEMS: { [system: string]: string } = {
@@ -182,14 +183,15 @@ export default class CaseHelper {
         },
     ];
 
-    public static async getClosestWaypoint(systemName: string): Promise<string> {
+    public static async getClosestWaypoint(systemName: string, platform: "PC" | "PS4" | "XB"): Promise<string> {
         try {
             const system = await Utils.getEDSMSystem(systemName);
             if (system && system.coords) {
                 let closest: { dist: number; waypoint?: Waypoint } = { dist: Infinity };
-                for (const waypoint of CaseHelper.WAYPOINTS) {
+                const waypoints: Waypoint[] = [...CaseHelper.WAYPOINTS, ...Config.getOwnRats(platform)];
+                for (const waypoint of waypoints) {
                     const dist = Utils.distanceBetween(waypoint.coords, system.coords);
-                    if (dist < closest.dist) {
+                    if (dist <= closest.dist) {
                         closest.dist = dist;
                         closest.waypoint = waypoint;
                     }
@@ -249,12 +251,18 @@ export default class CaseHelper {
     }
 
     public static buildAutoDispatch(state: CaseCardState): AutoDispatch[] {
+        const dispatchText: DispatchTextBase = this.getDispatchText(state);
         const dispatchFacts = this.buildAllAutoDispatch(state);
         const autoSpatch: AutoDispatch[] = [];
 
-        const allRats = Object.keys(state.rats);
-        const assignedRats = allRats.filter((rat) => state.rats[rat].assigned === true);
-        const fuelRats = assignedRats.filter((rat) => state.rats[rat].state.fuel === true);
+        const assignedRats = dispatchText.getAssignedRats().length;
+        const ratsAreAssigned = assignedRats > 0;
+        const ratsNeedFR = dispatchText.getRatsNeedingFR().length;
+        const allRatsNeedFR = ratsNeedFR === assignedRats;
+        const ratsNeedWR = dispatchText.getRatsNeedingWR().length;
+        const allRatsNeedWR = ratsNeedWR === assignedRats;
+        const needBeacon = ratsAreAssigned && dispatchText.getBCRats().length === 0;
+        const gotFuel = dispatchText.getFuelRats().length > 0;
 
         if (state.lang !== "EN") {
             autoSpatch.push(dispatchFacts.EN());
@@ -274,13 +282,13 @@ export default class CaseHelper {
             autoSpatch.push(dispatchFacts.CR_O2());
             autoSpatch.push(dispatchFacts.CR_POS());
 
-            if (assignedRats.length) {
+            if (ratsAreAssigned) {
                 autoSpatch.push(dispatchFacts.CR_GO());
             }
         }
 
         // NORMAL RESCUE
-        if (fuelRats.length > 0) {
+        if (gotFuel) {
             autoSpatch.push(dispatchFacts.SUCCESS());
         }
 
@@ -292,26 +300,15 @@ export default class CaseHelper {
             autoSpatch.push(dispatchFacts.SYSCONF());
         }
 
-        const nonFrRats = assignedRats.filter((rat) => state.rats[rat].state.fr !== true);
-        if (nonFrRats.length > 0) {
-            if (nonFrRats.length === assignedRats.length) {
-                autoSpatch.push(dispatchFacts.FR());
-            } else {
-                autoSpatch.push(dispatchFacts.ALSO_FR(nonFrRats));
-            }
+        if (ratsNeedFR) {
+            autoSpatch.push(allRatsNeedFR ? dispatchFacts.FR() : dispatchFacts.ALSO_FR());
         }
 
-        const nonWrRats = assignedRats.filter((rat) => state.rats[rat].state.wr !== true);
-        if (nonWrRats.length > 0 && !state.cr) {
-            if (nonWrRats.length === assignedRats.length) {
-                autoSpatch.push(dispatchFacts.WR());
-            } else {
-                autoSpatch.push(dispatchFacts.ALSO_WR(nonWrRats));
-            }
+        if (ratsNeedWR && !state.cr && !allRatsNeedFR) {
+            autoSpatch.push(allRatsNeedWR ? dispatchFacts.WR() : dispatchFacts.ALSO_WR());
         }
 
-        const bcRats = assignedRats.filter((rat) => state.rats[rat].state.bc === true);
-        if (assignedRats.length > 0 && bcRats.length === 0) {
+        if (needBeacon && !allRatsNeedWR) {
             autoSpatch.push(dispatchFacts.BC());
         }
 
@@ -377,7 +374,7 @@ export interface AutoDispatch {
     clipboard: string;
 }
 
-interface Waypoint {
+export interface Waypoint {
     name: string;
     coords: Coords;
 }

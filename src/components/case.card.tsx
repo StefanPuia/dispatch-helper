@@ -505,7 +505,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private async getWaypointDistance() {
         if (this.state.sysconf) {
-            const waypointString = await CaseHelper.getClosestWaypoint(this.state.system);
+            const waypointString = await CaseHelper.getClosestWaypoint(this.state.system, this.state.platform);
             if (waypointString) {
                 this.setState({ distanceToWaypoint: waypointString });
             }

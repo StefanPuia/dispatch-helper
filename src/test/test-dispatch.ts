@@ -34,7 +34,7 @@ export default class TestDispatch {
         "Hungarian (hu-HU)",
     ];
 
-    public static async test() {
+    public static async test(latency: number = 100) {
         window.TestDispatch = TestDispatch;
         window.dispatch = {
             dispatchEvent: (message: string) => {
@@ -51,7 +51,7 @@ export default class TestDispatch {
         EventDispatcher.listen("pause", TestDispatch.pauseHandler);
         await EventDispatcher.queuePromises(
             TestDispatch.getTestData().map((t: any) => async () => {
-                await EventDispatcher.dispatch("pause", null, "100");
+                await EventDispatcher.dispatch("pause", null, latency);
                 return EventDispatcher.dispatch(t.event, null, t.data);
             }),
             this,
@@ -71,7 +71,7 @@ export default class TestDispatch {
         const randomCases = TestDispatch.randomCases(cases);
         let caseFlows: { event: string; data: any }[] = [];
         for (let i = randomCases.startN; i < randomCases.startN + cases; i++) {
-            caseFlows = [...caseFlows, ...TestDispatch.caseFlow(i).slice(0, Math.floor(Math.random() * 18))];
+            caseFlows = [...caseFlows, ...TestDispatch.caseFlow(i) /*.slice(0, Math.floor(Math.random() * 18))*/];
         }
         return [...randomCases.cases, ...caseFlows];
         // return [];
@@ -79,36 +79,39 @@ export default class TestDispatch {
 
     private static caseFlow(id: number) {
         const events: Array<{ event: string; data: any }> = [];
+        const rat1 = `Rat_${id}_1`;
+        const rat2 = `Rat_${id}_2`;
+        const rat3 = `Rat_${id}_3`;
         const flow: Array<[string, string]> = [
             [`steph`, `!prep test_${id}`],
-            [`Rat_1`, `#${id} 2j`],
-            [`Rat_2`, `#${id} 2j`],
-            [`Rat_3`, `#${id} 2j`],
+            [rat1, `#${id} 2j`],
+            [rat2, `#${id} 2j`],
+            [rat3, `#${id} 2j`],
             TestDispatch.pickOne([
                 [`steph`, `!pc ${id}`],
                 [`steph`, `!xb ${id}`],
                 [`steph`, `!ps ${id}`],
             ]),
-            [`steph`, `!go ${id} Rat_1 Rat_2`],
+            [`steph`, `!go ${id} ${rat1} ${rat2}`],
             [`steph`, `!pcfr test_${id}`],
-            [`Rat_1`, `#${id} fr+ in solo`],
-            [`Rat_1`, `#${id} in open`],
-            [`Rat_2`, `#${id} fr+`],
+            [rat1, `#${id} fr+ in solo`],
+            [rat1, `#${id} in open`],
+            [rat2, `#${id} fr+`],
             TestDispatch.pickOne([
-                [`Rat_3`, `#${id} stdn`],
-                [`steph`, `=Rat_3 #${id} stdn`],
+                [rat3, `#${id} stdn`],
+                [`steph`, `${rat3} please stdn`],
             ]),
             [`steph`, `!pcwing test_${id}`],
-            [`Rat_1`, `#${id} wr+`],
-            [`Rat_2`, `#${id} wr+`],
+            [rat1, `#${id} wr+`],
+            [rat2, `#${id} wr+`],
             [`steph`, `!pcbeacon test_${id}`],
-            [`Rat_1`, `#${id} bc+`],
-            [`Rat_2`, `#${id} bc+`],
+            [rat1, `#${id} bc+`],
+            [rat2, `#${id} bc+`],
             TestDispatch.pickOne([
-                [`Rat_1`, `#${id} fuel+`],
-                [`Rat_2`, `#${id} fuel+`],
+                [rat1, `#${id} fuel+`],
+                [rat2, `#${id} fuel+`],
             ]),
-            [`steph`, `!close ${id} Rat_2`],
+            [`steph`, `!close ${id} ${rat2}`],
         ];
         for (const [user, message] of flow) {
             events.push(this.makeMessageEvent(user, message));
