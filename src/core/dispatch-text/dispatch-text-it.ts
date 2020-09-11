@@ -1,8 +1,33 @@
 import DispatchTextEN from "./dispatch-text-en";
+import DispatchTextBase from "./dispatch-text";
 
-export default class DispatchTextIT extends DispatchTextEN {
+export default class DispatchTextIT extends DispatchTextBase {
     private yourRats = this.isPlural() ? "i tuoi Rat" : "il tuo Rat";
     private invite = this.isPlural() ? "invitato" : "invita";
+
+    public alsoFR(): string {
+        return new DispatchTextEN(this.state).alsoFR();
+    }
+
+    public alsoWR(): string {
+        return new DispatchTextEN(this.state).alsoWR();
+    }
+
+    public getCRInst(): string {
+        return new DispatchTextEN(this.state).getCRInst();
+    }
+
+    public getCRPreInst(): string {
+        return new DispatchTextEN(this.state).getCRPreInst();
+    }
+
+    public getPostCRInst(): string {
+        return new DispatchTextEN(this.state).getPostCRInst();
+    }
+
+    public getRefreshSocial(): string {
+        return new DispatchTextEN(this.state).getRefreshSocial();
+    }
 
     public getEnglishCheck() {
         return `${this.state.nick} lei parla inglese?`;

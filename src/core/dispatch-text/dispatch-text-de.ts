@@ -1,6 +1,11 @@
 import DispatchTextEN from "./dispatch-text-en";
+import DispatchTextBase from "./dispatch-text";
 
-export default class DispatchTextDE extends DispatchTextEN {
+export default class DispatchTextDE extends DispatchTextBase {
+    public getRefreshSocial(): string {
+        return new DispatchTextEN(this.state).getRefreshSocial();
+    }
+
     public getWelcome() {
         return `Willkommen bei den Fuel Rats, ${this.state.nick}. Bitte sage bescheid, wenn du alle Module AUßER der Lebenserhaltung ausgeschaltet hast, wenn du hilfe brauchst oder wenn ein "Sauerstoff aufgebraucht in:" Zähler in der oberen rechten Ecke auftaucht.`;
     }
@@ -29,20 +34,20 @@ export default class DispatchTextDE extends DispatchTextEN {
         return `${this.state.nick} bitte füge diese Namen deiner Freundesliste hinzu: ${this.getAssignedRatsQuote()}`;
     }
 
-    public alsoFR(rats: string[]) {
-        return `${this.state.nick} Bitte füge diese Ratten auch deiner Freundesliste hinzu: ${this.getRatNicksQuote(
-            rats
-        )}`;
+    public alsoFR() {
+        return `${
+            this.state.nick
+        } Bitte füge diese Ratten auch deiner Freundesliste hinzu: ${this.getRatsNeedingFRQuote()}`;
     }
 
     public getPreWing() {
         return `${this.state.nick} bitte lade deine ratten in ein Geschwader ein.`;
     }
 
-    public alsoWR(rats: string[]) {
-        return `${this.state.nick} Bitte füge diese Ratten auch deinem Geschwader hinzu: ${this.getRatNicksQuote(
-            rats
-        )}`;
+    public alsoWR() {
+        return `${
+            this.state.nick
+        } Bitte füge diese Ratten auch deinem Geschwader hinzu: ${this.getRatsNeedingWRQuote()}`;
     }
 
     public getPreBeacon() {

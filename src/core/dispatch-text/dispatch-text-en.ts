@@ -36,16 +36,16 @@ export default class DispatchTextEN extends DispatchTextBase {
         return `${this.state.nick} please add ${theseNames} to your friend list: ${this.getAssignedRatsQuote()}`;
     }
 
-    public alsoFR(rats: string[]) {
-        return `${this.state.nick} please also add: ${this.getRatNicksQuote(rats)}`;
+    public alsoFR() {
+        return `${this.state.nick} please also add: ${this.getRatsNeedingFRQuote()}`;
     }
 
     public getPreWing() {
         return `${this.state.nick} now invite your ${this.getRatWord()} to a wing`;
     }
 
-    public alsoWR(rats: string[]) {
-        return `${this.state.nick} please also invite ${this.getRatNicksQuote(rats)} to your wing`;
+    public alsoWR() {
+        return `${this.state.nick} please also invite ${this.getRatsNeedingWRQuote()} to your wing`;
     }
 
     public getPreBeacon() {
@@ -145,7 +145,7 @@ export default class DispatchTextEN extends DispatchTextBase {
     }
 
     public getRefreshSocial() {
-        if (this.state.platform === "PS4") {
+        if (this.state.platform === "PS4" || this.state.platform === "XB") {
             return `${this.state.nick} please press OPTION on your controller, go to Social and press R1 and L1 a couple of times to refresh your friendslist`;
         }
         return "";

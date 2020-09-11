@@ -1,6 +1,11 @@
 import DispatchTextEN from "./dispatch-text-en";
+import DispatchTextBase from "./dispatch-text";
 
-export default class DispatchTextRU extends DispatchTextEN {
+export default class DispatchTextRU extends DispatchTextBase {
+    public getRefreshSocial(): string {
+        return new DispatchTextEN(this.state).getRefreshSocial();
+    }
+
     public getCRVideoLink() {
         return "https://fuelrats.cloud/s/DgZmtnJqai77Qwk";
     }
@@ -33,16 +38,16 @@ export default class DispatchTextRU extends DispatchTextEN {
         return `${this.state.nick} пожалуйста добавьте следующие имена в список друзей: ${this.getAssignedRatsQuote()}`;
     }
 
-    public alsoFR(rats: string[]) {
-        return `${this.state.nick} пожалуйста, также добавь этих крыс в друзья: ${this.getRatNicksQuote(rats)}`;
+    public alsoFR() {
+        return `${this.state.nick} пожалуйста, также добавь этих крыс в друзья: ${this.getRatsNeedingFRQuote()}`;
     }
 
     public getPreWing() {
         return `${this.state.nick} теперь добавьте ваших заправщиков в крыло.`;
     }
 
-    public alsoWR(rats: string[]) {
-        return `${this.state.nick} пожалуйста, также пригласите этих крыс в крыло: ${this.getRatNicksQuote(rats)}`;
+    public alsoWR() {
+        return `${this.state.nick} пожалуйста, также пригласите этих крыс в крыло: ${this.getRatsNeedingWRQuote()}`;
     }
 
     public getPreBeacon() {

@@ -1,6 +1,31 @@
 import DispatchTextEN from "./dispatch-text-en";
+import DispatchTextBase from "./dispatch-text";
 
-export default class DispatchTextES extends DispatchTextEN {
+export default class DispatchTextES extends DispatchTextBase {
+    public alsoFR(): string {
+        return new DispatchTextEN(this.state).alsoFR();
+    }
+
+    public alsoWR(): string {
+        return new DispatchTextEN(this.state).alsoWR();
+    }
+
+    public getCRInst(): string {
+        return new DispatchTextEN(this.state).getCRInst();
+    }
+
+    public getCRPreInst(): string {
+        return new DispatchTextEN(this.state).getCRPreInst();
+    }
+
+    public getPostCRInst(): string {
+        return new DispatchTextEN(this.state).getPostCRInst();
+    }
+
+    public getRefreshSocial(): string {
+        return new DispatchTextEN(this.state).getRefreshSocial();
+    }
+
     public getEnglishCheck() {
         return `¿${this.state.nick} hablas inglés?`;
     }

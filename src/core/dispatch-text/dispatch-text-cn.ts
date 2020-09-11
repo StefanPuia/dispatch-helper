@@ -1,6 +1,35 @@
 import DispatchTextEN from "./dispatch-text-en";
+import DispatchTextBase from "./dispatch-text";
 
-export default class DispatchTextCN extends DispatchTextEN {
+export default class DispatchTextCN extends DispatchTextBase {
+    public alsoFR(): string {
+        return new DispatchTextEN(this.state).alsoFR();
+    }
+
+    public alsoWR(): string {
+        return new DispatchTextEN(this.state).alsoWR();
+    }
+
+    public getCRInst(): string {
+        return new DispatchTextEN(this.state).getCRInst();
+    }
+
+    public getCRPreInst(): string {
+        return new DispatchTextEN(this.state).getCRPreInst();
+    }
+
+    public getEnglishCheck(): string {
+        return new DispatchTextEN(this.state).getEnglishCheck();
+    }
+
+    public getPostCRInst(): string {
+        return new DispatchTextEN(this.state).getPostCRInst();
+    }
+
+    public getRefreshSocial(): string {
+        return new DispatchTextEN(this.state).getRefreshSocial();
+    }
+
     public getWelcome() {
         return `欢迎来到Fuel Rats，${this.state.nick}. 请在您关闭所有除Life Support的组件后通知我。如果您需要说明或者是您看到上右角有"Oxygen Depleted In:"的计时，请通知我。`;
     }

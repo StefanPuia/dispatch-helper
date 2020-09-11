@@ -77,6 +77,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         };
 
         this.closeCase = this.closeCase.bind(this);
+        this.setLangPrompt = this.setLangPrompt.bind(this);
+        this.setLang = this.setLang.bind(this);
         this.handleAssign = this.handleAssign.bind(this);
         this.handleCaseAssign = this.handleCaseAssign.bind(this);
         this.handleConnect = this.handleConnect.bind(this);
@@ -104,9 +106,9 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     render() {
-        if (CaseController.caseData[this.props.id]) {
-            CaseController.caseData[this.props.id].props = this.props;
-            CaseController.caseData[this.props.id].state = this.state;
+        if (CaseController.caseData[this.state.id]) {
+            CaseController.caseData[this.state.id].props = this.props;
+            CaseController.caseData[this.state.id].state = this.state;
         }
         const systemNote = CaseHelper.getSystemNote(this.state.system);
         const autoSpatch = this.getAutoSpatch();
@@ -140,9 +142,11 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                     >
                         {this.state.nick}
                     </div>
-                    <div className={`case-language language-${this.props.lang}`}>{this.props.lang}</div>
+                    <div onClick={this.setLangPrompt} className={`case-language language-${this.state.lang}`}>
+                        {this.state.lang}
+                    </div>
                     <div onClick={this.closeCase} className={`case-number platform-${this.state.platform}`}>
-                        #{this.props.id}
+                        #{this.state.id}
                     </div>
                     <div
                         className={`case-system`}
@@ -161,7 +165,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                     <CaseDuration start={this.props.created.getTime()} />
                 </div>
                 <div className="case-card-body">{this.renderRats()}</div>
-                <CaseLogs key={this.props.caseKey} id={this.props.id} caseState={this.state} />
+                <CaseLogs key={this.props.caseKey} id={this.state.id} caseState={this.state} />
                 <div className="auto-spatch">
                     {autoSpatch.map((auto) => {
                         return (
@@ -236,6 +240,16 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private getAutoSpatch() {
         return CaseHelper.buildAutoDispatch(this.state);
+    }
+
+    private setLangPrompt() {
+        const prompt = window.prompt("Change the language of this case to:", this.state.lang);
+        if (prompt) {
+            EventDispatcher.dispatch("case.lang", this, {
+                id: this.props.id,
+                lang: prompt.substr(0, 2).toUpperCase(),
+            });
+        }
     }
 
     private closeCase() {
@@ -349,7 +363,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private changeState(
-        stateName: "active" | "cr" | "sysconf" | "system" | "platform",
+        stateName: "active" | "cr" | "sysconf" | "system" | "platform" | "lang",
         data: BaseMessage,
         override?: any,
         useData?: boolean,
@@ -442,6 +456,10 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.handleCaseAssign(false, data);
     }
 
+    private async setLang(data: BaseMessage) {
+        this.changeState("lang", data, undefined, true, "lang");
+    }
+
     private async setCaseActive(data: BaseMessage) {
         this.changeState("active", data);
     }
@@ -518,6 +536,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             ["case.platform", this.setPlatform],
             ["case.prep", this.prepClient],
             ["case.prepcr", this.prepClientCR],
+            ["case.lang", this.setLang],
         ];
     }
 

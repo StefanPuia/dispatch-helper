@@ -132,6 +132,54 @@ export default class CaseHelper {
                 z: -343.375,
             },
         },
+        {
+            name: "Sag A* side of Bubble",
+            coords: {
+                x: -67.40625,
+                y: -7.40625,
+                z: 150.0625,
+            },
+        },
+        {
+            name: "Dark side of Bubble",
+            coords: {
+                x: 29.40625,
+                y: -22.09375,
+                z: -159.53125,
+            },
+        },
+        {
+            name: "Maia side of Bubble",
+            coords: {
+                x: -154.53125,
+                y: 21.1875,
+                z: -11.1875,
+            },
+        },
+        {
+            name: "Fuelum side of Bubble",
+            coords: {
+                x: 23.5,
+                y: -18.75,
+                z: 146.875,
+            },
+        },
+        {
+            name: "Top side of Bubble",
+            coords: {
+                x: 7.1875,
+                y: 135.65625,
+                z: 3.0625,
+            },
+        },
+        {
+            name: "Bottom side of Bubble",
+            coords: {
+                x: 82.84375,
+                y: -210.03125,
+                z: 52.59375,
+            },
+        },
     ];
 
     public static async getClosestWaypoint(systemName: string): Promise<string> {
@@ -159,8 +207,8 @@ export default class CaseHelper {
     public static buildAllAutoDispatch(state: CaseCardState): { [key: string]: AutoDispatchFunction } {
         const dispatchText: DispatchTextBase = this.getDispatchText(state);
         return {
-            ALSO_FR: (nonFrRats: string[]) => this.buildADObject("ALSO FR", dispatchText.alsoFR(nonFrRats || [])),
-            ALSO_WR: (nonWrRats: string[]) => this.buildADObject("ALSO WR", dispatchText.alsoWR(nonWrRats || [])),
+            ALSO_FR: () => this.buildADObject("ALSO FR", dispatchText.alsoFR()),
+            ALSO_WR: () => this.buildADObject("ALSO WR", dispatchText.alsoWR()),
             SILENT: () => this.buildADObject("SILENT", dispatchText.disableSilentRunning()),
             BC_ALT: () => this.buildADObject("BC ALT", dispatchText.getBeaconAlt()),
             CR_GO: () =>
@@ -204,6 +252,10 @@ export default class CaseHelper {
         const dispatchFacts = this.buildAllAutoDispatch(state);
         const autoSpatch: AutoDispatch[] = [];
 
+        const allRats = Object.keys(state.rats);
+        const assignedRats = allRats.filter((rat) => state.rats[rat].assigned === true);
+        const fuelRats = assignedRats.filter((rat) => state.rats[rat].state.fuel === true);
+
         if (state.lang !== "EN") {
             autoSpatch.push(dispatchFacts.EN());
         }
@@ -221,13 +273,13 @@ export default class CaseHelper {
 
             autoSpatch.push(dispatchFacts.CR_O2());
             autoSpatch.push(dispatchFacts.CR_POS());
-            autoSpatch.push(dispatchFacts.CR_GO());
+
+            if (assignedRats.length) {
+                autoSpatch.push(dispatchFacts.CR_GO());
+            }
         }
 
         // NORMAL RESCUE
-        const allRats = Object.keys(state.rats);
-        const assignedRats = allRats.filter((rat) => state.rats[rat].assigned === true);
-        const fuelRats = assignedRats.filter((rat) => state.rats[rat].state.fuel === true);
         if (fuelRats.length > 0) {
             autoSpatch.push(dispatchFacts.SUCCESS());
         }

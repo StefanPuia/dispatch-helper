@@ -88,11 +88,35 @@ class DispatchSearch extends React.Component<DispatchSearchProps, DispatchSearch
                             caseCardState.lang = search.groups.lang.toUpperCase() as any;
                         }
                         if (search.groups.search) {
-                            const autoSpatch = CaseHelper.buildAllAutoDispatch(caseCardState);
+                            const baseSpatch = CaseHelper.buildAllAutoDispatch(caseCardState);
                             const searchRegex = new RegExp(search.groups.search, "i");
-                            const params = this.parseSearchParams(search.groups.params);
-                            for (const k in autoSpatch) {
+                            const params = this.parseSearchParams(search.groups.params).filter((i) => !!i);
+                            for (const k in baseSpatch) {
                                 try {
+                                    let caseCardStateTemp = caseCardState;
+                                    if (
+                                        params &&
+                                        typeof params[0] === "string" &&
+                                        ["ALSO_FR", "ALSO_WR", "PRE_FR", "PRE_WING"].includes(k)
+                                    ) {
+                                        caseCardStateTemp = {
+                                            ...caseCardState,
+                                            rats: {
+                                                ...caseCardState.rats,
+                                                ...params.reduce((rats, p) => {
+                                                    rats[p] = {
+                                                        assigned: true,
+                                                        state: {
+                                                            fr: false,
+                                                            wr: false,
+                                                        },
+                                                    };
+                                                    return rats;
+                                                }, {}),
+                                            },
+                                        };
+                                    }
+                                    const autoSpatch = CaseHelper.buildAllAutoDispatch(caseCardStateTemp);
                                     const spatch = autoSpatch[k].call(autoSpatch, ...params);
                                     if (spatch.info.match(searchRegex) || spatch.clipboard.match(searchRegex)) {
                                         results.push(spatch);

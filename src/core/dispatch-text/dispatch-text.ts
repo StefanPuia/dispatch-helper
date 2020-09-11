@@ -82,8 +82,24 @@ export default abstract class DispatchTextBase {
         return this.ratCount() !== 1;
     }
 
-    abstract alsoFR(rats: string[]): string;
-    abstract alsoWR(rats: string[]): string;
+    protected getRatsNeedingFR() {
+        return this.getAssignedRats().filter((rat) => this.state.rats[rat] && this.state.rats[rat].state.fr !== true);
+    }
+
+    protected getRatsNeedingFRQuote() {
+        return this.getRatNicksQuote(this.getRatsNeedingFR());
+    }
+
+    protected getRatsNeedingWR() {
+        return this.getAssignedRats().filter((rat) => this.state.rats[rat] && this.state.rats[rat].state.wr !== true);
+    }
+
+    protected getRatsNeedingWRQuote() {
+        return this.getRatNicksQuote(this.getRatsNeedingWR());
+    }
+
+    abstract alsoFR(): string;
+    abstract alsoWR(): string;
     abstract disableSilentRunning(): string;
     abstract getBeaconAlt(): string;
     abstract getCRGO(): string;

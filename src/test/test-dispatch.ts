@@ -1,5 +1,5 @@
-import { EventDispatcher } from "./core/event.dispatcher";
-import Chat from "./components/chat";
+import { EventDispatcher } from "../core/event.dispatcher";
+import Chat from "../components/chat";
 import sha256 from "sha256";
 
 declare global {
@@ -22,7 +22,17 @@ export default class TestDispatch {
     ];
     private static platform = ["PC", "XB", "PS4"];
     private static o2 = ["OK", "NOT OK"];
-    private static language = ["English (en-GB)", "German (de-DE)", "Russian (ru-RU)"];
+    private static language = [
+        "English (en-GB)",
+        "German (de-DE)",
+        "Russian (ru-RU)",
+        "French (fr-FR)",
+        "Polish (pl-PL)",
+        "Spanish (es-ES)",
+        "Romanian (ro-RO)",
+        "Italian (it-IT)",
+        "Hungarian (hu-HU)",
+    ];
 
     public static async test() {
         window.TestDispatch = TestDispatch;
