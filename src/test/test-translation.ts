@@ -1,3 +1,6 @@
+import { saveAs } from "file-saver";
+import JSZip from "jszip";
+
 import { CaseCardState } from "../components/case.card";
 import DispatchTextCN from "../core/dispatch-text/dispatch-text-cn";
 import DispatchTextCS from "../core/dispatch-text/dispatch-text-cs";
@@ -23,11 +26,29 @@ declare global {
 }
 
 export default class TestTranslation {
+    public static readonly SUPPORTED_LANGUAGES = [
+        "CN",
+        "CS",
+        "DE",
+        "EN",
+        "ES",
+        "FR",
+        "HU",
+        "IT",
+        "NB",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "RU",
+        "TR",
+    ];
+
     public static getDispatchLines(language: string = "EN") {
         const soloHelper = this.getDispatchHelper(language, this.getSingleRatState());
         const multiHelper = this.getDispatchHelper(language, this.getMultiRatState());
         return [
-            `# Dispatch Helper Lines - ${language}\n============================`,
+            `Dispatch Helper Lines - ${language}\n==========================`,
             this.buildOutputLine("Disable silent running", soloHelper.disableSilentRunning()),
             this.buildOutputLine("Stay at the main menu", soloHelper.getCRMenu()),
             this.buildOutputLine("From main menu, remember oxygen", soloHelper.getCROxygen()),
@@ -188,6 +209,22 @@ export default class TestTranslation {
                 },
             },
         };
+    }
+
+    public static async buildZIP() {
+        try {
+            const zip = new JSZip();
+            const img = zip.folder("translations");
+            if (img) {
+                for (const lang of this.SUPPORTED_LANGUAGES) {
+                    img.file(`${lang}.md`, this.getDispatchLines(lang));
+                }
+                const content = await zip.generateAsync({ type: "blob" });
+                saveAs(content, "translations.zip");
+            }
+        } catch (err) {
+            console.error(err);
+        }
     }
 }
 
