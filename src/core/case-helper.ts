@@ -273,7 +273,6 @@ export default class CaseHelper {
             if (!state.prep) {
                 autoSpatch.push(dispatchFacts.PREP_CR());
             }
-            autoSpatch.push(dispatchFacts.CR_INST());
 
             if (!state.sysconf) {
                 autoSpatch.push(dispatchFacts.CR_SYSCONF());
@@ -282,7 +281,8 @@ export default class CaseHelper {
             autoSpatch.push(dispatchFacts.CR_O2());
             autoSpatch.push(dispatchFacts.CR_POS());
 
-            if (ratsAreAssigned) {
+            if (ratsAreAssigned && !allRatsNeedFR) {
+                autoSpatch.push(dispatchFacts.CR_INST());
                 autoSpatch.push(dispatchFacts.CR_GO());
             }
         }
