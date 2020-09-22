@@ -81,7 +81,7 @@ export default class DispatchTextIT extends DispatchTextBase {
         return `${this.state.nick} per cortesia attiva "Life Support" immediatamente: vai nel menu a destra -> Modules , seleziona "Life support" e poi "Activate"`;
     }
 
-    public getCRMenu() {
+    public getMMStay() {
         return `${this.state.nick} da questo punto, rimani sulla schermata del menu principale! NON rientrare nel gioco finchè non ti dò il comando "GO GO GO"`;
     }
 

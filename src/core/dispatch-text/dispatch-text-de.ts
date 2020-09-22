@@ -98,7 +98,7 @@ export default class DispatchTextDE extends DispatchTextBase {
         return `${this.state.nick} bitte schalte deine Lebenserhaltung sofort wieder an: im rechten Menü -> Reider Module, wähle die Lebenserhaltung aus und wähle aktivieren`;
     }
 
-    public getCRMenu() {
+    public getMMStay() {
         return `${this.state.nick} bleib bitte ab jetzt im Hauptmenü! Logge dich NICHT ein bis ich dir das "GO GO GO" Kommando gebe.`;
     }
 

@@ -96,7 +96,7 @@ export default class DispatchTextEN extends DispatchTextBase {
         return `${this.state.nick} please turn your Life Support on immediately: go to the right menu -> Modules tab, select Life Support and select Activate`;
     }
 
-    public getCRMenu() {
+    public getMMStay() {
         return `${this.state.nick} from THIS point onwards, remain logged out in the Main Menu please! Do NOT login until I give you the "GO GO GO" command.`;
     }
 

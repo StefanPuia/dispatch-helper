@@ -104,7 +104,7 @@ export default abstract class DispatchTextBase {
     abstract getBeaconAlt(): string;
     abstract getCRGO(): string;
     abstract getCRInst(): string;
-    abstract getCRMenu(): string;
+    abstract getMMStay(): string;
     abstract getCROxygen(): string;
     abstract getCRPosition(): string;
     abstract getCRPreInst(): string;

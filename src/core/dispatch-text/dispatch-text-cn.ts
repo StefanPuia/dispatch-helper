@@ -74,7 +74,7 @@ export default class DispatchTextCN extends DispatchTextBase {
         return `${this.state.nick} 请立即启动您的Life Support:打开右手边控制板，打开Modules页面，选择Life Support，然后选择Activate。`;
     }
 
-    public getCRMenu() {
+    public getMMStay() {
         return `${this.state.nick} 从现在开始，请留在游戏主页面！在我在说“GO GO GO”之前，不要登入游戏。`;
     }
 

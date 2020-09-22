@@ -5,6 +5,5 @@
     "irc-realname": "realname",
     "irc-password": "",
     "notify": [
-        ["steph|salty|federat", "i"]
     ]
 }

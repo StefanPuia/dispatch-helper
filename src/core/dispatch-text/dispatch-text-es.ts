@@ -74,7 +74,7 @@ export default class DispatchTextES extends DispatchTextBase {
         return `${this.state.nick} activa tu Soporte Vital immediatamente: menu derecho -> Modulos -> selecciona Soporte Vital, y Activar.`;
     }
 
-    public getCRMenu() {
+    public getMMStay() {
         return `${this.state.nick} desde este punto en adelante, quedate en el Menú Principal. NO entres en el juego hasta que no te diga "GO GO GO".`;
     }
 
