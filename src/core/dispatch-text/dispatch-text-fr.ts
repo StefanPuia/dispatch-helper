@@ -1,31 +1,34 @@
-import DispatchTextEN from "./dispatch-text-en";
 import DispatchTextBase from "./dispatch-text";
 
 export default class DispatchTextFR extends DispatchTextBase {
     private yourRats = this.isPlural() ? "vos rats" : "votre rat";
 
     public alsoFR(): string {
-        return new DispatchTextEN(this.state).alsoFR();
+        return `${this.state.nick}, veuillez également ajouter ${this.getRatsNeedingFRQuote()} à votre liste d'amis.`;
     }
 
     public alsoWR(): string {
-        return new DispatchTextEN(this.state).alsoWR();
+        return `${this.state.nick}, veuillez également inviter ${this.getRatsNeedingWRQuote()} dans votre Escadrille.`;
     }
 
     public getCRInst(): string {
-        return new DispatchTextEN(this.state).getCRInst();
+        return `${
+            this.state.nick
+        }, quand je vous donne le signal, vous vous connectez au Mode OUVERT, allumez votre balise d'escadrille, invitez ${
+            this.yourRats
+        } ${this.getAssignedRatsQuote()} dans une Escadrille, puis revenez ici et faites-moi savoir combien de temps vous avez sur la minuterie d'oxygène.`;
     }
 
     public getCRPreInst(): string {
-        return new DispatchTextEN(this.state).getCRPreInst();
+        return `${this.state.nick}, je vais vous donner un bref aperçu de ce que vous devez faire, NE FAITES PAS encore rien de cela, essayez de vous en souvenir car vous devrez les faire très rapidement, dites-moi si vous avez des questions.`;
     }
 
     public getPostCRInst(): string {
-        return new DispatchTextEN(this.state).getPostCRInst();
+        return `${this.state.nick} vous devez ne pas connecter. Dites-moi si vous comprenez ce qui précède.`;
     }
 
     public getRefreshSocial(): string {
-        return new DispatchTextEN(this.state).getRefreshSocial();
+        return `${this.state.nick}, s'il vous plaît appuyez sur OPTION sur votre contrôleur, allez sur Social et appuyez sur R1 et L1 plusieurs fois pour actualiser votre liste d'amis.`;
     }
 
     public getEnglishCheck() {
@@ -78,7 +81,7 @@ export default class DispatchTextFR extends DispatchTextBase {
         return `${this.state.nick} veuillez immédiatement rallumer vos Systèmes de Survie : allez dans le menu à droite -> onglet Modules -> sélectionnez vos Systèmes de Survie, puis activez-les`;
     }
 
-    public getCRMenu() {
+    public getMMStay() {
         return `${this.state.nick} à partir de maintenant, veuillez rester sur le Menu Principal! NE vous connectez SURTOUT PAS jusqu'à ce que je vous envoie un "GO GO GO".`;
     }
 
@@ -112,7 +115,8 @@ export default class DispatchTextFR extends DispatchTextBase {
 
     public getEta(minutes: number) {
         const theyWillBe = this.isPlural() ? "seront" : "sera";
-        return `${this.state.nick} ${this.yourRats} ${theyWillBe} avec vous dans environ ${minutes} minute(s), si vous voyez un minuteur d'oxygène bleu apparaitre dites le moi immédiatement.`;
+        const minute = minutes > 1 ? "minutes" : "minute";
+        return `${this.state.nick} ${this.yourRats} ${theyWillBe} avec vous dans environ ${minutes} ${minute}, si vous voyez un minuteur d'oxygène bleu apparaitre dites le moi immédiatement.`;
     }
 
     public getSCInfo() {

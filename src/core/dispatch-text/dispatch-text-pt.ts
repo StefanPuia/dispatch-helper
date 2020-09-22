@@ -74,7 +74,7 @@ export default class DispatchTextPT extends DispatchTextBase {
         return `${this.state.nick} por favor ligue seu suporte de vida imediatamente: vá ao menu da direita -> aba módulos, selecione Suporte de Vida e selecione Inativo.`;
     }
 
-    public getCRMenu() {
+    public getMMStay() {
         return `${this.state.nick} DESTE ponto em diante, por favor, permaneça deslogado na tela do menu principal! NÃO entre até que eu dê à você o comando "GO GO GO".`;
     }
 

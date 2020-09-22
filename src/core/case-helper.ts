@@ -217,7 +217,7 @@ export default class CaseHelper {
             CR_FACTS: () => this.buildADObject("CR FACTS", dispatchText.getBeacon(), dispatchText.getWing()),
             CR_O2: () => this.buildADObject("O2 CR", dispatchText.getCROxygen()),
             CR_POS: () => this.buildADObject("POS CR", dispatchText.getCRPosition()),
-            MM_STAY: () => this.buildADObject("MM STAY", dispatchText.getCRMenu()),
+            MM_STAY: () => this.buildADObject("MM STAY", dispatchText.getMMStay()),
             CR_SYSCONF: () => this.buildADObject("SYSCONF CR", dispatchText.getCRSysConf()),
             CR_VIDEO: () => this.buildADObject("CR VIDEO", dispatchText.getCRVideo()),
             DEBRIEF: () => this.buildADObject("DEBRIEF", dispatchText.getDBChannel()),

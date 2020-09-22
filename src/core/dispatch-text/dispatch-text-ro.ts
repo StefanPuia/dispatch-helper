@@ -22,8 +22,8 @@ export default class DispatchTextRO extends DispatchTextBase {
         return new DispatchTextEN(this.state).getCRInst();
     }
 
-    public getCRMenu(): string {
-        return new DispatchTextEN(this.state).getCRMenu();
+    public getMMStay(): string {
+        return new DispatchTextEN(this.state).getMMStay();
     }
 
     public getCROxygen(): string {

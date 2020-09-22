@@ -98,7 +98,7 @@ export default class DispatchTextRU extends DispatchTextBase {
         return `${this.state.nick} немедленно включите вашу систему жизнеобеспечения: откройте правое меню, вкладка модули, выберите систему жизнеобеспечения и выберите активировать.`;
     }
 
-    public getCRMenu() {
+    public getMMStay() {
         return `${this.state.nick} с этого момента, пожалуйста, оставайтесь в главном меню. НЕ входите в игру пока я вам не дам команду "GO GO GO".`;
     }
 

@@ -50,7 +50,7 @@ export default class TestTranslation {
         return [
             `Dispatch Helper Lines - ${language}\n==========================`,
             this.buildOutputLine("Disable silent running", soloHelper.disableSilentRunning()),
-            this.buildOutputLine("Stay at the main menu", soloHelper.getCRMenu()),
+            this.buildOutputLine("Stay at the main menu", soloHelper.getMMStay()),
             this.buildOutputLine("From main menu, remember oxygen", soloHelper.getCROxygen()),
             this.buildOutputLine("From main menu, remember position", soloHelper.getCRPosition()),
             this.buildOutputLine("CR pre-instructions", soloHelper.getCRPreInst()),
