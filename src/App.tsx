@@ -1,5 +1,6 @@
 import "./App.css";
 import "./core/config";
+import "./test/case-stats";
 
 import React from "react";
 

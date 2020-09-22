@@ -2,6 +2,7 @@ import React from "react";
 import Config from "../core/config";
 import Utils from "../core/utils";
 import { EventDispatcher } from "../core/event.dispatcher";
+import CaseStats from "../test/case-stats";
 export interface OptionsProps {}
 
 export interface OptionsState {}
@@ -19,6 +20,7 @@ class Options extends React.Component<OptionsProps, OptionsState> {
                 <h2>Options</h2>
                 <h3>My Rats</h3>
                 {this.renderMyRats()}
+                <h4>{CaseStats.guessNextCaseId()}</h4>
             </div>
         );
     }

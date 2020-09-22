@@ -374,6 +374,7 @@ export interface NewCase extends BaseMessage {
     cr: boolean;
     lang: string;
     nick: string;
+    id: number;
 }
 
 export interface Callout extends BaseMessage {
