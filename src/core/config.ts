@@ -95,6 +95,15 @@ export default class Config {
         Config.set("onlyRats", value);
         localStorage.onlyRats = value;
     }
+
+    public static get mechaDown() {
+        return localStorage.mechaDown === "true" || Config.get("mechaDown");
+    }
+
+    public static set mechaDown(value: boolean) {
+        Config.set("mechaDown", value);
+        localStorage.mechaDown = value;
+    }
 }
 
 declare global {

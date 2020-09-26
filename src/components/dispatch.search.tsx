@@ -54,6 +54,7 @@ class DispatchSearch extends React.Component<DispatchSearchProps, DispatchSearch
                     if (search && search.groups) {
                         let caseCardState: CaseCardState = {
                             id: -1,
+                            client: "",
                             rats: [] as any,
                             connected: true,
                             active: true,

@@ -33,6 +33,19 @@ class Options extends React.Component<OptionsProps, OptionsState> {
                         Only show distances to rats
                     </label>
                 </div>
+                <div>
+                    <label>
+                        <input
+                            type="checkbox"
+                            {...{ checked: !!Config.mechaDown }}
+                            onChange={(e) => {
+                                Config.mechaDown = e.currentTarget.checked;
+                                this.forceUpdate();
+                            }}
+                        />
+                        Mecha is down
+                    </label>
+                </div>
             </div>
         );
     }

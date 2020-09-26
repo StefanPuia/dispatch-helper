@@ -1,27 +1,34 @@
 /* eslint-disable no-cond-assign */
 import { EventDispatcher } from "./event.dispatcher";
 import CaseController from "../components/case.controller";
+import Config from "./config";
+import Utils from "./utils";
+import { EDSMSystem } from "./utils";
 
 export default class LogParser {
     private static INSTANCE: LogParser;
     private static REGEX: { [p: string]: RegExp } = {
-        jumps: /(?:#|case)?\s*(?<case>\d+)[^\d]+(?<jumps>\d+)\s*(?:j|jumps)[^\w]*/i,
-        jumpsRev: /(?<jumps>\d+)\s*(?:j|jumps)[^\d]+(?:#|case)?\s*(?<case>\d+)/i,
-        fr: /(?:#|case)?\s*(?<case>\d+).*?(?:fr|friend)\s*(?<status>\+|-)/i,
-        frRev: /(?:fr|friend)\s*(?<status>\+|-).*?(?:#|case)?\s*(?<case>\d+)/i,
-        wr: /(?:#|case)?\s*(?<case>\d+).*?(?:wr|wing)\s*(?<status>\+|-)/i,
-        wrRev: /(?:wr|wing)\s*(?<status>\+|-).*?(?:#|case)?\s*(?<case>\d+)/i,
-        bc: /(?:#|case)?\s*(?<case>\d+).*?(?:bc|wb|beacon)\s*(?<status>\+|-)/i,
-        bcRev: /(?:bc|wb|beacon)\s*(?<status>\+|-).*?(?:#|case)?\s*(?<case>\d+)/i,
-        stdn: /(?:(?:#|case)?\s*(?<case>\d+).*?)?(?:stnd|stdn|standing down|nvm|nevermind)/i,
-        stdnRev: /(?:stnd|stdn|standing down|nvm|nevermind)(?:.*?(?:#|case)?\s*(?<case>\d+))?/i,
-        fuel: /(?:#|case)?\s*(?<case>\d+).*?(?:fuel|fl)\s*(?<status>\+|-)/i,
-        fuelRev: /(?:fuel|fl)\s*(?<status>\+|-).*?(?:#|case)?\s*(?<case>\d+)/i,
+        jumps: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+))[^\d]+(?<jumps>\d+)\s*(?:j|jumps)[^\w]*/i,
+        jumpsRev: /(?<jumps>\d+)\s*(?:j|jumps)[^\d]+(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+))/i,
+        fr: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+)).*?(?:fr|friend)\s*(?<status>\+|-)/i,
+        frRev: /(?:fr|friend)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+))/i,
+        wr: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+)).*?(?:wr|wing)\s*(?<status>\+|-)/i,
+        wrRev: /(?:wr|wing)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+))/i,
+        bc: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+)).*?(?:bc|wb|beacon)\s*(?<status>\+|-)/i,
+        bcRev: /(?:bc|wb|beacon)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+))/i,
+        stdn: /(?:(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+)).*?)?(?:stnd|stdn|standing down|nvm|nevermind)/i,
+        stdnRev: /(?:stnd|stdn|standing down|nvm|nevermind)(?:.*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+)))?/i,
+        fuel: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+)).*?(?:fuel|fl)\s*(?<status>\+|-)/i,
+        fuelRev: /(?:fuel|fl)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+))/i,
         ratsignal: new RegExp(
             "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+?)" +
-                "(?: \\((?:(?:\\d+\\.\\d+ LY from .+?)|(?<sysconf>(?:not in Fuelrats System Database)|(?:too short to verify)))\\))?" +
-                " - Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK) - Language: .+? \\((?<lang>.+?)\\)\\s+" +
+                "(?: \\((?:(?:\\d+\\.\\d+ LY from .+?)|(?<sysconf>(?:not in galaxy database)|(?:too short to verify)))\\))?" +
+                " - Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK)(?: - Language: .+? \\((?<lang>.+?)\\))?\\s+" +
                 "(?:- IRC Nickname: (?<nick>.+?))?\\(Case #(?<case>\\d+)\\) .+",
+            "i"
+        ),
+        incoming: new RegExp(
+            "Incoming Client: (?<client>.+?) - System: (?<system>.+?) - Platform: (?<platform>.+?) - O2: (?<oxygen>OK|NOT OK) - Language: .+? \\((?<lang>.+?)\\)",
             "i"
         ),
         closed: /^!(?:close|clear)\s+(?:(?<case>\d+)|(?<client>\S+))(?:\s+(?<rat>.+))?/i,
@@ -127,7 +134,7 @@ export default class LogParser {
             parsed = true;
             EventDispatcher.dispatch("callout.jumps", this, {
                 ...callout,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
                 jumps: parseInt(m.jumps),
             } as CalloutJumps);
         });
@@ -136,7 +143,7 @@ export default class LogParser {
             parsed = true;
             EventDispatcher.dispatch(`callout.fr${m.status}`, this, {
                 ...callout,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
             } as CalloutFR);
         });
 
@@ -144,7 +151,7 @@ export default class LogParser {
             parsed = true;
             EventDispatcher.dispatch(`callout.wr${m.status}`, this, {
                 ...callout,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
             } as CalloutWR);
         });
 
@@ -152,7 +159,7 @@ export default class LogParser {
             parsed = true;
             EventDispatcher.dispatch(`callout.bc${m.status}`, this, {
                 ...callout,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
             } as CalloutBC);
         });
 
@@ -160,7 +167,7 @@ export default class LogParser {
             parsed = true;
             EventDispatcher.dispatch(`callout.fuel${m.status}`, this, {
                 ...callout,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
             } as CalloutFuel);
         });
 
@@ -196,7 +203,7 @@ export default class LogParser {
             EventDispatcher.dispatch(`callout.stdn`, this, {
                 ...baseMessage,
                 rat: message.user,
-                id: m.case ? parseInt(m.case) : undefined,
+                id: this.caseNickId(m.case, m.client),
             } as Callout);
         });
 
@@ -228,7 +235,7 @@ export default class LogParser {
             parsed = true;
             EventDispatcher.dispatch(`case.sysconf`, this, {
                 ...baseMessage,
-                id: parseInt(m.case),
+                id: this.caseNickId(m.case, m.client),
             } as Callout);
         });
 
@@ -251,7 +258,7 @@ export default class LogParser {
                 sysconf: !m.sysconf,
                 platform: m.platform,
                 cr: m.oxygen === "NOT OK",
-                lang: m.lang,
+                lang: m.lang || "en",
                 nick: m.nick || m.client,
             } as NewCase);
         });
@@ -282,6 +289,57 @@ export default class LogParser {
                 args: ["DIRECT", m.message],
                 command: "PRIVMSG",
             });
+        });
+
+        this.onMatch(message, "incoming", async (m) => {
+            let system: EDSMSystem | undefined;
+            try {
+                system = await Utils.getEDSMSystem(m.system);
+            } catch (err) {}
+            setTimeout(() => {
+                let existingCase = Object.values(CaseController.caseData).find(
+                    ({ state }) => state && state.client === m.client
+                );
+                function getCaseNumber() {
+                    let caseNo = undefined;
+                    let increments = 100;
+                    while (!caseNo) {
+                        const tmp = -1 * Math.floor(Math.random() * increments);
+                        if (!CaseController.caseData[tmp]) {
+                            caseNo = tmp;
+                            break;
+                        }
+                        increments *= 10;
+                    }
+                    return caseNo;
+                }
+                if (!existingCase || !existingCase.state) {
+                    EventDispatcher.dispatch(`callout.newcase`, this, {
+                        ...baseMessage,
+                        id: getCaseNumber(),
+                        client: m.client,
+                        system: m.system,
+                        sysconf: !!system,
+                        platform: m.platform,
+                        cr: m.oxygen === "NOT OK",
+                        lang: m.lang,
+                        nick: (m.client as string).replace(/[\s.]/g, "_").replace(/[^\w\d_]/i, ""),
+                    } as NewCase);
+                } else {
+                    EventDispatcher.dispatch(`callout.updatecase`, this, {
+                        ...baseMessage,
+                        id: existingCase.state.id,
+                        client: m.client,
+                        system: m.system,
+                        sysconf: !!system,
+                        platform: m.platform,
+                        cr: m.oxygen === "NOT OK",
+                        lang: m.lang,
+                        nick: (m.client as string).replace(/[\s.]/g, "_").replace(/[^\w\d_]/i, ""),
+                    } as NewCase);
+                }
+                parsed = true;
+            }, 2000);
         });
 
         if (!parsed) {

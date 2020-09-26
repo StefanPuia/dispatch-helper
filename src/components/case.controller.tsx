@@ -27,6 +27,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         this.handleCloseCase = this.handleCloseCase.bind(this);
         this.handleNewCase = this.handleNewCase.bind(this);
         this.removeCase = this.removeCase.bind(this);
+        this.updateCase = this.updateCase.bind(this);
     }
 
     render() {
@@ -106,10 +107,68 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         );
     }
 
+    private async updateCase(newState: NewCase) {
+        const existingCase = Object.values(CaseController.caseData).find(
+            ({ state }) => state && state.client === newState.client
+        );
+        if (existingCase && existingCase.state) {
+            const oldState = existingCase.state;
+            const currentCaseId = oldState.id !== newState.id ? newState.id : oldState.id;
+            const baseMessage: any = {
+                id: currentCaseId,
+            };
+            if (oldState.id !== newState.id) {
+                await EventDispatcher.dispatch("case.changeid", this, {
+                    id: oldState.id,
+                    newId: newState.id,
+                });
+            }
+            if (oldState.client !== newState.client) {
+                EventDispatcher.dispatch("case.client", this, {
+                    ...baseMessage,
+                    client: newState.client,
+                });
+            }
+            if (oldState.nick !== newState.nick) {
+                EventDispatcher.dispatch("nickchange", this, {
+                    raw: {
+                        user: oldState.nick,
+                    },
+                    nick: newState.nick,
+                });
+            }
+            if (oldState.cr !== newState.cr) {
+                EventDispatcher.dispatch("case.cr", this, {
+                    ...baseMessage,
+                    cr: newState.cr,
+                });
+            }
+            if (oldState.system !== newState.system) {
+                EventDispatcher.dispatch("case.sys", this, {
+                    ...baseMessage,
+                    system: newState.system,
+                });
+            }
+            if (oldState.platform !== newState.platform) {
+                EventDispatcher.dispatch("case.platform", this, {
+                    ...baseMessage,
+                    platform: newState.platform,
+                });
+            }
+            if (oldState.lang !== newState.lang) {
+                EventDispatcher.dispatch("case.lang", this, {
+                    ...baseMessage,
+                    lang: newState.lang,
+                });
+            }
+        }
+    }
+
     componentDidMount() {
         EventDispatcher.listen("callout.newcase", this.handleNewCase);
         EventDispatcher.listen("case.closed", this.handleCloseCase);
         EventDispatcher.listen("case.md", this.handleCaseMD);
+        EventDispatcher.listen("callout.updatecase", this.updateCase);
         EventDispatcher.listen("case.update", async (caseId: number) => {
             this.setState(
                 update(this.state, {

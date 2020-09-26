@@ -26,6 +26,7 @@ export interface CaseCardProps {
 
 export interface CaseCardState {
     id: number;
+    client: string;
     rats: { [user: string]: CaseRatState };
     connected: boolean;
     active: boolean;
@@ -63,6 +64,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         super(props);
         this.state = {
             id: this.props.id,
+            client: this.props.client,
             rats: {},
             connected: true,
             active: true,
@@ -103,6 +105,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.getAutoSpatch = this.getAutoSpatch.bind(this);
         this.prepClient = this.prepClient.bind(this);
         this.prepClientCR = this.prepClientCR.bind(this);
+        this.setId = this.setId.bind(this);
+        this.setClient = this.setClient.bind(this);
     }
 
     render() {
@@ -363,7 +367,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private changeState(
-        stateName: "active" | "cr" | "sysconf" | "system" | "platform" | "lang",
+        stateName: "active" | "cr" | "sysconf" | "system" | "platform" | "lang" | "client" | "id",
         data: BaseMessage,
         override?: any,
         useData?: boolean,
@@ -472,6 +476,14 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.changeState("sysconf", data, true);
     }
 
+    private async setId(data: BaseMessage) {
+        this.changeState("id", data, undefined, true, "newId");
+    }
+
+    private async setClient(data: BaseMessage) {
+        this.changeState("client", data);
+    }
+
     private async setCaseSystem(data: BaseMessage) {
         if (data.id !== this.props.id) return;
         this.changeState("system", data, undefined, true, "sys");
@@ -537,6 +549,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             ["case.prep", this.prepClient],
             ["case.prepcr", this.prepClientCR],
             ["case.lang", this.setLang],
+            ["case.changeid", this.setId],
+            ["case.client", this.setClient],
         ];
     }
 
