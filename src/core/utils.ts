@@ -51,7 +51,9 @@ export default class Utils {
             }),
         });
         const system = await res.json();
-        DatabaseUtil.storeEDSMSystem(system);
+        if (system && system.name) {
+            DatabaseUtil.storeEDSMSystem(system);
+        }
         return system;
     }
 
@@ -60,6 +62,39 @@ export default class Utils {
             return (await DatabaseUtil.getEDSMSystem(systemName)) as EDSMSystem;
         }
         return;
+    }
+
+    public static shuffle(arra1: any[]) {
+        let ctr = arra1.length;
+        let temp;
+        let index;
+        while (ctr > 0) {
+            index = Math.floor(Math.random() * ctr);
+            ctr--;
+            temp = arra1[ctr];
+            arra1[ctr] = arra1[index];
+            arra1[index] = temp;
+        }
+        return arra1;
+    }
+
+    public static toHHMMSS(sec_num: number) {
+        let hours = Math.floor(sec_num / 3600);
+        let minutes = Math.floor((sec_num - hours * 3600) / 60);
+        let seconds = sec_num - hours * 3600 - minutes * 60;
+        return `${append(hours)}:${append(minutes)}:${append(seconds)}`;
+        function append(number: number) {
+            return number < 10 ? "0" + number : number;
+        }
+    }
+
+    public static makeArray(start: number, end: number) {
+        let i = start;
+        const array = [];
+        while (i < end) {
+            array.push(i++);
+        }
+        return array;
     }
 }
 

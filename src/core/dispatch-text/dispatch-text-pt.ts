@@ -48,7 +48,9 @@ export default class DispatchTextPT extends DispatchTextBase {
     }
 
     public getPreFR() {
-        return `${this.state.nick} por favor adicione esses nomes à sua lista de amigos: ${this.getAssignedRats()}.`;
+        return `${
+            this.state.nick
+        } por favor adicione esses nomes à sua lista de amigos: ${this.getAssignedRatsQuote()}.`;
     }
 
     public openPlay() {

@@ -1,21 +1,25 @@
 import "./App.css";
+import "./core/config";
+import "./test/case-stats";
 
 import React from "react";
 
 import CaseController from "./components/case.controller";
 import Chat from "./components/chat";
+import DispatchSearch from "./components/dispatch.search";
+import Options from "./components/options";
+import DatabaseUtil from "./core/database.util";
+import { EventDispatcher } from "./core/event.dispatcher";
 import { IRCReader } from "./core/irc.reader";
 import LogParser from "./core/log.parser";
 import Utils from "./core/utils";
-import DispatchSearch from "./components/dispatch.search";
-import { EventDispatcher } from "./core/event.dispatcher";
-import DatabaseUtil from "./core/database.util";
 
 export interface AppProps {}
 
 export interface AppState {
     logs: Array<any>;
     showSearch: boolean;
+    showOptions: boolean;
 }
 
 class App extends React.Component<AppProps, AppState> {
@@ -27,10 +31,15 @@ class App extends React.Component<AppProps, AppState> {
 
     constructor(props: AppProps) {
         super(props);
-        this.state = { logs: [], showSearch: false };
+        this.state = {
+            logs: [],
+            showSearch: false,
+            showOptions: false,
+        };
         this.handleFocus = this.handleFocus.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
         this.handleSearchBlur = this.handleSearchBlur.bind(this);
+        this.handleOptionsBlur = this.handleOptionsBlur.bind(this);
 
         DatabaseUtil.init();
         const { hidden, visibilityChange } = Utils.getVisibilityChangeByBrowser();
@@ -52,6 +61,7 @@ class App extends React.Component<AppProps, AppState> {
                     Bugs/Feedback
                 </a>
                 {this.state.showSearch ? <DispatchSearch /> : ""}
+                {this.state.showOptions ? <Options /> : ""}
             </>
         );
     }
@@ -65,11 +75,21 @@ class App extends React.Component<AppProps, AppState> {
             e.preventDefault();
             this.setState({ showSearch: true });
             return false;
+        } else if (e.key === "o" && e.ctrlKey) {
+            e.preventDefault();
+            this.setState({ showOptions: true });
+            return false;
+        } else if (e.key === "Escape" && this.state.showOptions) {
+            EventDispatcher.dispatch("options.blur", null, null);
         }
     }
 
     private async handleSearchBlur() {
         this.setState({ showSearch: false });
+    }
+
+    private async handleOptionsBlur() {
+        this.setState({ showOptions: false });
     }
 
     componentWilUnmount() {
@@ -80,6 +100,7 @@ class App extends React.Component<AppProps, AppState> {
         document.addEventListener(App.visibility.handle, this.handleFocus, false);
         document.addEventListener("keydown", this.handleKeyUp);
         EventDispatcher.listen("dispatch-search.blur", this.handleSearchBlur);
+        EventDispatcher.listen("options.blur", this.handleOptionsBlur);
 
         window.onbeforeunload = function (e: any) {
             e = e || window.event;

@@ -1,6 +1,8 @@
 import { EventDispatcher } from "../core/event.dispatcher";
 import Chat from "../components/chat";
 import sha256 from "sha256";
+import Utils from '../core/utils';
+import CaseStats from './case-stats';
 
 declare global {
     interface Window {
@@ -34,24 +36,15 @@ export default class TestDispatch {
         "Hungarian (hu-HU)",
     ];
 
-    public static async test() {
-        window.TestDispatch = TestDispatch;
-        window.dispatch = {
-            dispatchEvent: (message: string) => {
-                return EventDispatcher.dispatch("irc.message", null, {
-                    user: "Steph",
-                    text: message,
-                    time: new Date(),
-                    type: "message",
-                    uid: Math.random(),
-                });
-            },
-            sendMessage: this.sendMessage,
-        };
+    public static async test(startN: number = 0, cases: number = 3, repeat: number = 1, latency: number = 100, scramble: boolean = false) {
         EventDispatcher.listen("pause", TestDispatch.pauseHandler);
+        let testData: any[] = [];
+        for (let i = 0; i < repeat; i++) {
+            testData = [...testData, ...TestDispatch.getTestData(startN, cases, scramble)]
+        }
         await EventDispatcher.queuePromises(
-            TestDispatch.getTestData().map((t: any) => async () => {
-                await EventDispatcher.dispatch("pause", null, "100");
+            testData.map((t: any) => async () => {
+                await EventDispatcher.dispatch("pause", null, latency);
                 return EventDispatcher.dispatch(t.event, null, t.data);
             }),
             this,
@@ -60,55 +53,94 @@ export default class TestDispatch {
         EventDispatcher.removeListener("pause", TestDispatch.pauseHandler);
     }
 
+    public static async sequencialTest(cases: number = 3, concurrent: number = 1, pool: number[] = Utils.makeArray(0, cases), latency: number = 100) {
+        EventDispatcher.listen("pause", TestDispatch.pauseHandler);
+        CaseStats.board.pool = pool;
+        for (let i = 0; i < cases; i++) {
+            let testData: any[] = [];
+            for (let j = 0; j <= concurrent; j++) {
+                const caseId = CaseStats.getNextAvailableCaseId();
+                testData = [
+                    ...testData,
+                    TestDispatch.randomCases(caseId, 1).cases[0],
+                    ...TestDispatch.caseFlow(caseId)
+                ];
+                i++;
+            }
+            await EventDispatcher.queuePromises(
+                testData.map((t: any) => async () => {
+                    await EventDispatcher.dispatch("pause", null, latency);
+                    return EventDispatcher.dispatch(t.event, null, t.data);
+                }),
+                this,
+                []
+            );
+        }
+    }
+
     private static pauseHandler(length: string): Promise<any> {
         return new Promise((resolve) => {
             setTimeout(resolve, parseInt(length));
         });
     }
 
-    private static getTestData() {
-        const cases = 3;
-        const randomCases = TestDispatch.randomCases(cases);
-        let caseFlows: { event: string; data: any }[] = [];
-        for (let i = randomCases.startN; i < randomCases.startN + cases; i++) {
-            caseFlows = [...caseFlows, ...TestDispatch.caseFlow(i).slice(0, Math.floor(Math.random() * 18))];
+    private static getTestData(startN: number, cases: number = 3, scramble: boolean = false) {
+        const randomCases = TestDispatch.randomCases(startN, cases);
+        let caseFlows: { event: string; data: any }[][] = [];
+        for (let i = 0; i < cases; i++) {
+            caseFlows[i] = [randomCases.cases[i], ...TestDispatch.caseFlow(i + randomCases.startN)];
         }
-        return [...randomCases.cases, ...caseFlows];
-        // return [];
+        if (!scramble) return caseFlows.flat();
+        const scrambled: { event: string; data: any }[] = [];
+        let stillPicking = true;
+        while (stillPicking) {
+            const validLists = caseFlows.filter((l => l.length > 0));
+            const listIndex = Math.floor(Math.random() * validLists.length);
+            const pickSize = Math.min(Math.floor(Math.random() * validLists[listIndex].length) + 1, validLists[listIndex].length);
+            for (let i = 0; i < pickSize; i++) {
+                const val = validLists[listIndex].shift();
+                if (val) scrambled.push(val);
+            }
+            stillPicking = caseFlows.filter((l => l.length > 0)).length > 0;
+        }
+        return scrambled;
     }
 
     private static caseFlow(id: number) {
         const events: Array<{ event: string; data: any }> = [];
+        const rat1 = `Rat_${id}_1`;
+        const rat2 = `Rat_${id}_2`;
+        const rat3 = `Rat_${id}_3`;
         const flow: Array<[string, string]> = [
             [`steph`, `!prep test_${id}`],
-            [`Rat_1`, `#${id} 2j`],
-            [`Rat_2`, `#${id} 2j`],
-            [`Rat_3`, `#${id} 2j`],
+            [rat1, `#${id} 2j`],
+            [rat2, `#${id} 2j`],
+            [rat3, `#${id} 2j`],
             TestDispatch.pickOne([
                 [`steph`, `!pc ${id}`],
                 [`steph`, `!xb ${id}`],
                 [`steph`, `!ps ${id}`],
             ]),
-            [`steph`, `!go ${id} Rat_1 Rat_2`],
+            [`steph`, `!go ${id} ${rat1} ${rat2}`],
             [`steph`, `!pcfr test_${id}`],
-            [`Rat_1`, `#${id} fr+ in solo`],
-            [`Rat_1`, `#${id} in open`],
-            [`Rat_2`, `#${id} fr+`],
+            [rat1, `#${id} fr+ in solo`],
+            [rat1, `#${id} in open`],
+            [rat2, `#${id} fr+`],
             TestDispatch.pickOne([
-                [`Rat_3`, `#${id} stdn`],
-                [`steph`, `=Rat_3 #${id} stdn`],
+                [rat3, `#${id} stdn`],
+                [`steph`, `${rat3} please stdn`],
             ]),
             [`steph`, `!pcwing test_${id}`],
-            [`Rat_1`, `#${id} wr+`],
-            [`Rat_2`, `#${id} wr+`],
+            [rat1, `#${id} wr+`],
+            [rat2, `#${id} wr+`],
             [`steph`, `!pcbeacon test_${id}`],
-            [`Rat_1`, `#${id} bc+`],
-            [`Rat_2`, `#${id} bc+`],
+            [rat1, `#${id} bc+`],
+            [rat2, `#${id} bc+`],
             TestDispatch.pickOne([
-                [`Rat_1`, `#${id} fuel+`],
-                [`Rat_2`, `#${id} fuel+`],
+                [rat1, `#${id} fuel+`],
+                [rat2, `#${id} fuel+`],
             ]),
-            [`steph`, `!close ${id} Rat_2`],
+            [`steph`, `!close ${id} ${rat2}`],
         ];
         for (const [user, message] of flow) {
             events.push(this.makeMessageEvent(user, message));
@@ -143,9 +175,8 @@ export default class TestDispatch {
         EventDispatcher.dispatch(t.event, null, t.data);
     }
 
-    private static randomCases(size: number): { cases: Array<{ event: string; data: any }>; startN: number } {
+    private static randomCases(startN: number, size: number): { cases: Array<{ event: string; data: any }>; startN: number } {
         const cases: Array<{ event: string; data: any }> = [];
-        const startN = Math.floor(Math.random() * 200) + 100;
 
         for (let i = startN; i < size + startN; i++) {
             cases.push(
@@ -173,3 +204,5 @@ export default class TestDispatch {
         return list[Math.floor(Math.random() * list.length)];
     }
 }
+
+window.TestDispatch = TestDispatch;

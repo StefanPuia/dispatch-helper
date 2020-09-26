@@ -11,6 +11,10 @@
     --theme-border-colour: black;
     --theme-bg-hover-alt: var(--theme-fg-hover);
     --theme-fg-hover-alt: black;
+
+    --z-chat: 2;
+    --z-bugreport: 3;
+    --z-options: 4;
 }
 
 body {
@@ -34,7 +38,7 @@ a:hover {
     bottom: 0;
     padding: 0 0 10px 0;
     background-color: var(--theme-bg);
-    z-index: 10;
+    z-index: var(--z-chat);
     border-top: solid 1px var(--theme-border-colour);
 }
 
@@ -63,27 +67,11 @@ table.chatLog tr>td:nth-child(3) {
     word-break: break-word;
 }
 
-div#errors {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    padding: 0 20px;
-    text-align: left;
-    z-index: 10;
-    background: var(--theme-bg);
-}
-
-div#errors div.error {
-    padding: 5px;
-    color: var(--theme-fg-error);
-}
-
 a#bugreport {
     position: fixed;
     bottom: 15px;
     right: 120px;
-    z-index: 15;
+    z-index: var(--z-bugreport);
 }
 
 div#dispatchSearch {
@@ -92,8 +80,7 @@ div#dispatchSearch {
     top: 5vh;
     width: 100vw;
     place-items: center;
-    z-index: 15;
-    opacity: 0.8;
+    z-index: var(--z-search);
 }
 
 div#dispatchSearch>input {
@@ -138,4 +125,18 @@ div#dispatchSearch>section>div>span {
     div#dispatchSearch>section {
         width: 80vw;
     }
+}
+
+div#options {
+    position: fixed;
+    top: 5vh;
+    width: 580px;
+    height: auto;
+    left: calc(calc(100vw - 580px) / 2);
+    display: block;
+    border: solid 1px var(--theme-border-colour);
+    background-color: var(--theme-bg-light);
+    z-index: var(--z-options);
+    padding: 1em 2em;
+    overflow-y: auto;
 }

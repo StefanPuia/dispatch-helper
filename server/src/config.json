@@ -1,9 +1,10 @@
 {
     "disptach-port": 45362,
-    "irc-name": "Steph",
-    "irc-nick": "Federat",
+    "irc-server": "kiwi.fuelrats.com",
+    "irc-port": "",
+    "irc-name": "",
+    "irc-nick": "",
     "irc-realname": "realname",
     "irc-password": "",
-    "notify": [
-    ]
+    "notify": []
 }

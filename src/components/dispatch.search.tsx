@@ -23,18 +23,14 @@ class DispatchSearch extends React.Component<DispatchSearchProps, DispatchSearch
         this.state = { query: "", results: [] };
         this.search = this.search.bind(this);
         this.blur = this.blur.bind(this);
+        this.handleKeyUp = this.handleKeyUp.bind(this);
     }
     render() {
         return (
-            <div id="dispatchSearch" ref={(el) => (this.container = el)} onBlur={this.blur}>
+            <div id="dispatchSearch" ref={(el) => (this.container = el)}>
                 <input
                     onChange={this.search}
-                    onKeyUp={(e) => {
-                        if (e.key === "Escape") {
-                            e.preventDefault();
-                            e.currentTarget.blur();
-                        }
-                    }}
+                    onKeyUp={this.handleKeyUp}
                     ref={(el) => (this.input = el)}
                     type="text"
                     placeholder="[#] [plat] [lang] command [- params]"
@@ -134,15 +130,21 @@ class DispatchSearch extends React.Component<DispatchSearchProps, DispatchSearch
     }
 
     private blur() {
-        setTimeout(() => {
+        EventDispatcher.dispatch("dispatch-search.blur", this, null);
+    }
+
+    private handleKeyUp(e: any) {
+        const event = e as KeyboardEvent;
+        if (event.key === "Escape") {
+            event.preventDefault();
             EventDispatcher.dispatch("dispatch-search.blur", this, null);
-        }, 100);
+        }
     }
 
     private renderSearchResults() {
         return this.state.results.map((res) => {
             return (
-                <CopyToClipboard key={Utils.getUniqueKey("CopyToClipboard")} text={res.clipboard}>
+                <CopyToClipboard key={Utils.getUniqueKey("CopyToClipboard")} text={res.clipboard} onCopy={this.blur}>
                     <div key={Utils.getUniqueKey("search-results-div")} title={res.clipboard}>
                         <strong>{res.info}</strong>
                         <span>{res.clipboard}</span>
