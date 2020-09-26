@@ -3,7 +3,7 @@ import "../style/case-card.css";
 import React from "react";
 
 import { EventDispatcher } from "../core/event.dispatcher";
-import { Callout, NewCase, BaseMessage } from "../core/log.parser";
+import { Callout, NewCase } from "../core/log.parser";
 import Utils from "../core/utils";
 import CaseCard from "./case.card";
 import { CaseCardProps, CaseCardState } from "./case.card";
@@ -91,7 +91,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
                 system={data.system}
                 sysconf={data.sysconf}
                 platform={data.platform}
-                lang={(data.lang.split("-")[0] || "").toUpperCase()}
+                lang={data.lang}
                 created={data.time}
                 cr={data.cr}
             />
@@ -118,49 +118,50 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
             const baseMessage: any = {
                 id: currentCaseId,
             };
+            let caseChange: string[] = [];
             if (oldState.id !== newState.id) {
+                caseChange.push("ID");
                 await EventDispatcher.dispatch("case.changeid", this, {
                     id: oldState.id,
                     newId: newState.id,
                 });
             }
-            if (oldState.client !== newState.client) {
-                EventDispatcher.dispatch("case.client", this, {
-                    ...baseMessage,
-                    client: newState.client,
-                });
-            }
-            if (oldState.nick !== newState.nick) {
-                EventDispatcher.dispatch("nickchange", this, {
-                    raw: {
-                        user: oldState.nick,
-                    },
-                    nick: newState.nick,
-                });
-            }
             if (oldState.cr !== newState.cr) {
-                EventDispatcher.dispatch("case.cr", this, {
+                caseChange.push("CR");
+                await EventDispatcher.dispatch("case.cr", this, {
                     ...baseMessage,
                     cr: newState.cr,
                 });
             }
             if (oldState.system !== newState.system) {
-                EventDispatcher.dispatch("case.sys", this, {
+                caseChange.push("system");
+                await EventDispatcher.dispatch("case.sys", this, {
                     ...baseMessage,
-                    system: newState.system,
+                    sys: newState.system,
                 });
             }
             if (oldState.platform !== newState.platform) {
-                EventDispatcher.dispatch("case.platform", this, {
+                caseChange.push("platform");
+                await EventDispatcher.dispatch("case.platform", this, {
                     ...baseMessage,
                     platform: newState.platform,
                 });
             }
             if (oldState.lang !== newState.lang) {
-                EventDispatcher.dispatch("case.lang", this, {
+                caseChange.push("lang");
+                await EventDispatcher.dispatch("case.lang", this, {
                     ...baseMessage,
                     lang: newState.lang,
                 });
+            }
+            if (caseChange.length) {
+                console.log(existingCase.state);
+                Utils.sendMessage(
+                    "SYSTEM",
+                    `<span style="color: red">Incoming signal made changes to #${currentCaseId} (${caseChange.join(
+                        ", "
+                    )})</span>`
+                );
             }
         }
     }
@@ -173,12 +174,12 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         EventDispatcher.listen("case.disconnect", async (data: any) => {
             if (data.nick === "MechaSqueak[BOT]") {
                 Config.mechaDown = true;
-                EventDispatcher.dispatch("ERROR", this, "Mecha disconnected. Entering Mecha-Down mode.");
+                EventDispatcher.dispatch("error", this, "Mecha disconnected. Entering Mecha-Down mode.");
             }
         });
         EventDispatcher.listen("case.connect", async (data: any) => {
             if (data.nick === "MechaSqueak[BOT]") {
-                EventDispatcher.dispatch("ERROR", this, "Mecha reconnected. Disable Mecha-Down mode from the options.");
+                EventDispatcher.dispatch("error", this, "Mecha reconnected. Disable Mecha-Down mode from the options.");
             }
         });
         EventDispatcher.listen("case.update", async (caseId: number) => {

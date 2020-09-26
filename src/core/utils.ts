@@ -1,4 +1,6 @@
 import DatabaseUtil from "./database.util";
+import sha256 from "sha256";
+import { EventDispatcher } from "./event.dispatcher";
 export default class Utils {
     public static getUniqueKey(prefix: string = "x") {
         return `${prefix}-${new Date().getTime()}-${Math.random() * 1000}`.replace(/\./, "");
@@ -95,6 +97,32 @@ export default class Utils {
             array.push(i++);
         }
         return array;
+    }
+
+    public static sanitizeNickname(nick: string = "") {
+        return nick.replace(/[\s.]/g, "_").replace(/[^\w\d_]/i, "");
+    }
+
+    public static getLangFromLocale(locale: string = "") {
+        return locale ? (locale.split("-")[0] || "").toUpperCase() : "EN";
+    }
+
+    public static makeMessageEvent(from: string, message: string) {
+        return {
+            event: "irc.message",
+            data: {
+                user: from,
+                text: message,
+                time: new Date(),
+                type: "message",
+                uid: sha256(`${message}${new Date().getTime()}${Math.random()}`),
+            },
+        };
+    }
+
+    public static sendMessage(from: string, message: string) {
+        const t = this.makeMessageEvent(from, message);
+        return EventDispatcher.dispatch(t.event, this, t.data);
     }
 }
 

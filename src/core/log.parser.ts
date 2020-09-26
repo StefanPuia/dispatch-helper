@@ -1,7 +1,6 @@
 /* eslint-disable no-cond-assign */
 import { EventDispatcher } from "./event.dispatcher";
 import CaseController from "../components/case.controller";
-import Config from "./config";
 import Utils from "./utils";
 import { EDSMSystem } from "./utils";
 
@@ -28,7 +27,10 @@ export default class LogParser {
             "i"
         ),
         incoming: new RegExp(
-            "Incoming Client: (?<client>.+?) - System: (?<system>.+?) - Platform: (?<platform>.+?) - O2: (?<oxygen>OK|NOT OK) - Language: .+? \\((?<lang>.+?)\\)",
+            "Incoming Client: (?<client>.+?) - System: (?<system>.+?)" +
+                " - Platform: (?<platform>.+?) - O2: (?<oxygen>OK|NOT OK)" +
+                " - Language: .+? \\((?<lang>.+?)\\)" +
+                "(?: - IRC Nickname: (?<nick>\\S+))",
             "i"
         ),
         closed: /^!(?:close|clear)\s+(?:(?<case>\d+)|(?<client>\S+))(?:\s+(?<rat>.+))?/i,
@@ -250,7 +252,7 @@ export default class LogParser {
 
         this.onMatch(message, "ratsignal", (m) => {
             parsed = true;
-            EventDispatcher.dispatch(`callout.newcase`, this, {
+            EventDispatcher.dispatch(`callout.updatecase`, this, {
                 ...baseMessage,
                 id: parseInt(m.case),
                 client: m.client,
@@ -258,8 +260,8 @@ export default class LogParser {
                 sysconf: !m.sysconf,
                 platform: m.platform,
                 cr: m.oxygen === "NOT OK",
-                lang: m.lang || "en",
-                nick: m.nick || m.client,
+                lang: Utils.getLangFromLocale(m.lang),
+                nick: m.nick || Utils.sanitizeNickname(m.client),
             } as NewCase);
         });
 
@@ -296,50 +298,47 @@ export default class LogParser {
             try {
                 system = await Utils.getEDSMSystem(m.system);
             } catch (err) {}
-            setTimeout(() => {
-                let existingCase = Object.values(CaseController.caseData).find(
-                    ({ state }) => state && state.client === m.client
-                );
-                function getCaseNumber() {
-                    let caseNo = undefined;
-                    let increments = 100;
-                    while (!caseNo) {
-                        const tmp = -1 * Math.floor(Math.random() * increments);
-                        if (!CaseController.caseData[tmp]) {
-                            caseNo = tmp;
-                            break;
-                        }
-                        increments *= 10;
+            let existingCase = Object.values(CaseController.caseData).find(
+                ({ state }) => state && state.client === m.client
+            );
+            function getCaseNumber() {
+                let caseNo = undefined;
+                let increments = 100;
+                while (!caseNo) {
+                    const tmp = -1 * Math.floor(Math.random() * increments);
+                    if (!CaseController.caseData[tmp]) {
+                        caseNo = tmp;
+                        break;
                     }
-                    return caseNo;
+                    increments *= 10;
                 }
-                if (!existingCase || !existingCase.state) {
-                    EventDispatcher.dispatch(`callout.newcase`, this, {
-                        ...baseMessage,
-                        id: getCaseNumber(),
-                        client: m.client,
-                        system: m.system,
-                        sysconf: !!system,
-                        platform: m.platform,
-                        cr: m.oxygen === "NOT OK",
-                        lang: m.lang,
-                        nick: (m.client as string).replace(/[\s.]/g, "_").replace(/[^\w\d_]/i, ""),
-                    } as NewCase);
-                } else {
-                    EventDispatcher.dispatch(`callout.updatecase`, this, {
-                        ...baseMessage,
-                        id: existingCase.state.id,
-                        client: m.client,
-                        system: m.system,
-                        sysconf: !!system,
-                        platform: m.platform,
-                        cr: m.oxygen === "NOT OK",
-                        lang: m.lang,
-                        nick: (m.client as string).replace(/[\s.]/g, "_").replace(/[^\w\d_]/i, ""),
-                    } as NewCase);
-                }
-                parsed = true;
-            }, 2000);
+                return caseNo;
+            }
+            if (!existingCase || !existingCase.state) {
+                EventDispatcher.dispatch(`callout.newcase`, this, {
+                    ...baseMessage,
+                    id: getCaseNumber(),
+                    client: m.client,
+                    system: m.system,
+                    sysconf: !!system,
+                    platform: m.platform,
+                    cr: m.oxygen === "NOT OK",
+                    lang: Utils.getLangFromLocale(m.lang),
+                    nick: Utils.sanitizeNickname(m.nick),
+                } as NewCase);
+            } else {
+                EventDispatcher.dispatch(`callout.updatecase`, this, {
+                    ...baseMessage,
+                    id: existingCase.state.id,
+                    client: m.client,
+                    system: m.system,
+                    sysconf: !!system,
+                    platform: m.platform,
+                    cr: m.oxygen === "NOT OK",
+                    lang: Utils.getLangFromLocale(m.lang),
+                    nick: Utils.sanitizeNickname(m.nick),
+                } as NewCase);
+            }
         });
 
         if (!parsed) {

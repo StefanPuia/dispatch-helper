@@ -2,7 +2,6 @@ import React from "react";
 import Config from "../core/config";
 import Utils from "../core/utils";
 import { EventDispatcher } from "../core/event.dispatcher";
-import CaseStats from "../test/case-stats";
 export interface OptionsProps {}
 
 export interface OptionsState {}

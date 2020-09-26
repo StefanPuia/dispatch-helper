@@ -250,7 +250,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         const prompt = window.prompt("Change the language of this case to:", this.state.lang);
         if (prompt) {
             EventDispatcher.dispatch("case.lang", this, {
-                id: this.props.id,
+                id: this.state.id,
                 lang: prompt.substr(0, 2).toUpperCase(),
             });
         }
@@ -259,7 +259,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     private closeCase() {
         if (window.confirm("Are you sure you want to close this case?")) {
             EventDispatcher.dispatch("case.closed", this, {
-                id: this.props.id,
+                id: this.state.id,
             });
         }
     }
@@ -274,7 +274,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         const rats = this.state.rats;
         if (data.rat === this.state.nick) return;
         // if not this case, unassign rat
-        if (data.id !== this.props.id) {
+        if (data.id !== this.state.id) {
             if (rats[data.rat] && !rats[data.rat].assigned) {
                 delete rats[data.rat];
                 this.updateState({
@@ -298,7 +298,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private setRatStatus(prop: RatState, value: boolean, data: Callout) {
-        if (data.id !== this.props.id || data.rat === this.state.nick) return;
+        if (data.id !== this.state.id || data.rat === this.state.nick) return;
         const rats = this.state.rats;
         if (!this.state.rats[data.rat]) {
             rats[data.rat] = {
@@ -329,7 +329,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private handleCaseAssign(assign: boolean, data: CaseAssign) {
         const rats = this.state.rats;
-        if (data.id !== this.props.id && assign) {
+        if (data.id !== this.state.id && assign) {
             for (const rat of data.rats) {
                 if (rats[rat] && !rats[rat].assigned) {
                     delete rats[rat];
@@ -356,7 +356,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private async handleStandDown(data: Callout) {
-        if ((data.id && data.id !== this.props.id) || data.rat === this.state.nick) return;
+        if ((data.id && data.id !== this.state.id) || data.rat === this.state.nick) return;
         const rats = this.state.rats;
         if (!rats[data.rat] || rats[data.rat].assigned) return;
         delete rats[data.rat];
@@ -373,7 +373,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         useData?: boolean,
         overrideDataName?: string
     ) {
-        if (data.id !== this.props.id) return;
+        if (data.id !== this.state.id) return;
         let state: any = "";
         if (typeof override !== "undefined") {
             state = override;
@@ -389,8 +389,13 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.updateState(updateObject);
 
         if (stateName === "active") {
-            EventDispatcher.dispatch("case.update", this, this.props.id);
+            EventDispatcher.dispatch("case.update", this, this.state.id);
         }
+        CaseController.caseData[this.state.id] = {
+            key: CaseController.caseData[this.state.id]?.key || Utils.getUniqueKey("case-card"),
+            state: this.state,
+            props: this.props,
+        };
     }
 
     private async handleNickChange(data: NickChange) {
@@ -411,7 +416,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private async setUnread(data: BaseMessage) {
-        if (data.id === this.props.id) {
+        if (data.id === this.state.id) {
             this.updateState({ unread: { $set: true } });
         }
     }
@@ -477,6 +482,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private async setId(data: BaseMessage) {
+        if (data.id !== this.state.id) return;
+        delete CaseController.caseData[data.id];
         this.changeState("id", data, undefined, true, "newId");
     }
 
@@ -485,7 +492,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private async setCaseSystem(data: BaseMessage) {
-        if (data.id !== this.props.id) return;
+        if (data.id !== this.state.id) return;
         this.changeState("system", data, undefined, true, "sys");
         this.setState({ sysconf: true });
         this.getWaypointDistance();
@@ -563,11 +570,11 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     componentDidMount() {
         this.mounted = true;
-        if (CaseController.caseData[this.props.id]) {
-            CaseController.caseData[this.props.id].props = this.props;
-            CaseController.caseData[this.props.id].state = this.state;
+        if (CaseController.caseData[this.state.id]) {
+            CaseController.caseData[this.state.id].props = this.props;
+            CaseController.caseData[this.state.id].state = this.state;
         }
-        EventDispatcher.dispatch("case.update", this, this.props.id);
+        EventDispatcher.dispatch("case.update", this, this.state.id);
         for (const handler of this.getEventHandlers()) {
             EventDispatcher.listen(handler[0], handler[1]);
         }

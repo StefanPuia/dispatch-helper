@@ -1,15 +1,10 @@
 import { EventDispatcher } from "../core/event.dispatcher";
 import Chat from "../components/chat";
-import sha256 from "sha256";
-import Utils from '../core/utils';
-import CaseStats from './case-stats';
+import Utils from "../core/utils";
+import CaseStats from "./case-stats";
 
 declare global {
     interface Window {
-        dispatch: {
-            dispatchEvent: any;
-            sendMessage: any;
-        };
         TestDispatch: any;
     }
 }
@@ -36,11 +31,17 @@ export default class TestDispatch {
         "Hungarian (hu-HU)",
     ];
 
-    public static async test(startN: number = 0, cases: number = 3, repeat: number = 1, latency: number = 100, scramble: boolean = false) {
+    public static async test(
+        startN: number = 0,
+        cases: number = 3,
+        repeat: number = 1,
+        latency: number = 100,
+        scramble: boolean = false
+    ) {
         EventDispatcher.listen("pause", TestDispatch.pauseHandler);
         let testData: any[] = [];
         for (let i = 0; i < repeat; i++) {
-            testData = [...testData, ...TestDispatch.getTestData(startN, cases, scramble)]
+            testData = [...testData, ...TestDispatch.getTestData(startN, cases, scramble)];
         }
         await EventDispatcher.queuePromises(
             testData.map((t: any) => async () => {
@@ -53,7 +54,12 @@ export default class TestDispatch {
         EventDispatcher.removeListener("pause", TestDispatch.pauseHandler);
     }
 
-    public static async sequencialTest(cases: number = 3, concurrent: number = 1, pool: number[] = Utils.makeArray(0, cases), latency: number = 100) {
+    public static async sequencialTest(
+        cases: number = 3,
+        concurrent: number = 1,
+        pool: number[] = Utils.makeArray(0, cases),
+        latency: number = 100
+    ) {
         EventDispatcher.listen("pause", TestDispatch.pauseHandler);
         CaseStats.board.pool = pool;
         for (let i = 0; i < cases; i++) {
@@ -63,7 +69,7 @@ export default class TestDispatch {
                 testData = [
                     ...testData,
                     TestDispatch.randomCases(caseId, 1).cases[0],
-                    ...TestDispatch.caseFlow(caseId)
+                    ...TestDispatch.caseFlow(caseId),
                 ];
                 i++;
             }
@@ -94,14 +100,17 @@ export default class TestDispatch {
         const scrambled: { event: string; data: any }[] = [];
         let stillPicking = true;
         while (stillPicking) {
-            const validLists = caseFlows.filter((l => l.length > 0));
+            const validLists = caseFlows.filter((l) => l.length > 0);
             const listIndex = Math.floor(Math.random() * validLists.length);
-            const pickSize = Math.min(Math.floor(Math.random() * validLists[listIndex].length) + 1, validLists[listIndex].length);
+            const pickSize = Math.min(
+                Math.floor(Math.random() * validLists[listIndex].length) + 1,
+                validLists[listIndex].length
+            );
             for (let i = 0; i < pickSize; i++) {
                 const val = validLists[listIndex].shift();
                 if (val) scrambled.push(val);
             }
-            stillPicking = caseFlows.filter((l => l.length > 0)).length > 0;
+            stillPicking = caseFlows.filter((l) => l.length > 0).length > 0;
         }
         return scrambled;
     }
@@ -143,7 +152,7 @@ export default class TestDispatch {
             [`steph`, `!close ${id} ${rat2}`],
         ];
         for (const [user, message] of flow) {
-            events.push(this.makeMessageEvent(user, message));
+            events.push(Utils.makeMessageEvent(user, message));
         }
         return events;
     }
@@ -152,35 +161,24 @@ export default class TestDispatch {
         const events: Array<{ event: string; data: any }> = [];
         for (let i = 0; i < size; i++) {
             const user = "The quick brown fox jumps over the lazy dog 0123456789 " + i;
-            events.push(this.makeMessageEvent(user, "#69 " + Chat.getNickColour(user)));
+            events.push(Utils.makeMessageEvent(user, "#69 " + Chat.getNickColour(user)));
         }
         return events;
     }
 
-    public static makeMessageEvent(from: string, message: string) {
-        return {
-            event: "irc.message",
-            data: {
-                user: from,
-                text: message,
-                time: new Date(),
-                type: "message",
-                uid: sha256(`${message}${new Date().getTime()}${Math.random()}`),
-            },
-        };
-    }
-
     public static sendMessage(from: string, message: string) {
-        const t = this.makeMessageEvent(from, message);
-        EventDispatcher.dispatch(t.event, null, t.data);
+        return Utils.sendMessage(from, message);
     }
 
-    private static randomCases(startN: number, size: number): { cases: Array<{ event: string; data: any }>; startN: number } {
+    private static randomCases(
+        startN: number,
+        size: number
+    ): { cases: Array<{ event: string; data: any }>; startN: number } {
         const cases: Array<{ event: string; data: any }> = [];
 
         for (let i = startN; i < size + startN; i++) {
             cases.push(
-                this.makeMessageEvent(
+                Utils.makeMessageEvent(
                     "MechaSqueak[BOT]",
                     `RATSIGNAL - CMDR test_${i}` +
                         ` - Reported System: ${TestDispatch.pickOne(TestDispatch.systems)} (${TestDispatch.pickOne(
