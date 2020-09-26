@@ -40,22 +40,27 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
     }
 
     private caseSorter(a: JSX.Element, b: JSX.Element) {
-        const A = CaseController.caseData[a.props.id];
-        const B = CaseController.caseData[b.props.id];
-        if (A?.state && B?.state) {
-            if (A.state.active < B.state.active) return 1;
-            if (A.state.active > B.state.active) return -1;
-            if (A.state.cr < B.state.cr) return 1;
-            if (A.state.cr > B.state.cr) return -1;
-        } else {
-            if (a.props.cr < b.props.cr) return 1;
-            if (a.props.cr > b.props.cr) return -1;
+        const caseIdA = CaseController.getCaseNumberForClient(a.props.client);
+        const caseIdB = CaseController.getCaseNumberForClient(b.props.client);
+        if (caseIdA && caseIdB) {
+            const A = CaseController.caseData[caseIdA];
+            const B = CaseController.caseData[caseIdB];
+            if (A?.state && B?.state) {
+                if (A.state.active < B.state.active) return 1;
+                if (A.state.active > B.state.active) return -1;
+                if (A.state.cr < B.state.cr) return 1;
+                if (A.state.cr > B.state.cr) return -1;
+            } else {
+                if (a.props.cr < b.props.cr) return 1;
+                if (a.props.cr > b.props.cr) return -1;
+            }
         }
         return a.props.created.getTime() - b.props.created.getTime();
     }
 
     private removeCase(data: Callout) {
-        const index = this.state.cases.findIndex((c: any) => c.props.id === data.id);
+        const client = CaseController.getClientForCaseNumber(data.id);
+        const index = this.state.cases.findIndex((c: JSX.Element) => c.props.client === client);
         if (index > -1) {
             if (data.rat && !CaseController.caseData[data.id].state?.rats[data.rat]) return;
             delete CaseController.caseData[data.id];
@@ -203,7 +208,17 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
 
     public static getCaseNumberForNick(nick: string): number | undefined {
         const caseCard = Object.values(CaseController.caseData).find(({ state }) => state?.nick === nick);
-        return caseCard ? caseCard?.props?.id : undefined;
+        return caseCard ? caseCard?.state?.id : undefined;
+    }
+
+    public static getCaseNumberForClient(client: string): number | undefined {
+        const caseCard = Object.values(CaseController.caseData).find(({ state }) => state?.client === client);
+        return caseCard ? caseCard?.state?.id : undefined;
+    }
+
+    public static getClientForCaseNumber(id: number): string | undefined {
+        const caseCard = Object.values(CaseController.caseData).find(({ state }) => state?.id === id);
+        return caseCard ? caseCard?.state?.client : undefined;
     }
 }
 
