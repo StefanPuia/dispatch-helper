@@ -91,7 +91,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
                 system={data.system}
                 sysconf={data.sysconf}
                 platform={data.platform}
-                lang={data.lang}
+                lang={data.lang || "EN"}
                 created={data.time}
                 cr={data.cr}
             />
@@ -140,6 +140,13 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
                     sys: newState.system,
                 });
             }
+            if (oldState.sysconf !== newState.sysconf) {
+                caseChange.push("sysconf");
+                await EventDispatcher.dispatch("case.sysconf", this, {
+                    ...baseMessage,
+                    sysconf: newState.system,
+                });
+            }
             if (oldState.platform !== newState.platform) {
                 caseChange.push("platform");
                 await EventDispatcher.dispatch("case.platform", this, {
@@ -147,7 +154,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
                     platform: newState.platform,
                 });
             }
-            if (oldState.lang !== newState.lang) {
+            if (newState.lang && oldState.lang !== newState.lang) {
                 caseChange.push("lang");
                 await EventDispatcher.dispatch("case.lang", this, {
                     ...baseMessage,
@@ -155,7 +162,6 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
                 });
             }
             if (caseChange.length) {
-                console.log(existingCase.state);
                 Utils.sendMessage(
                     "SYSTEM",
                     `<span style="color: red">Incoming signal made changes to #${currentCaseId} (${caseChange.join(
@@ -163,6 +169,8 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
                     )})</span>`
                 );
             }
+        } else {
+            EventDispatcher.dispatch("callout.newcase", this, newState);
         }
     }
 

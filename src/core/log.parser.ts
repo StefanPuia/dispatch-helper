@@ -23,14 +23,14 @@ export default class LogParser {
             "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+?)" +
                 "(?: \\((?:(?:\\d+\\.\\d+ LY from .+?)|(?<sysconf>(?:not in galaxy database)|(?:too short to verify)))\\))?" +
                 " - Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK)(?: - Language: .+? \\((?<lang>.+?)\\))?\\s+" +
-                "(?:- IRC Nickname: (?<nick>.+?))?\\(Case #(?<case>\\d+)\\) .+",
+                "(?:- IRC Nickname: (?<nick>.+?))?\\(Case #(?<case>\\d+)\\)",
             "i"
         ),
         incoming: new RegExp(
             "Incoming Client: (?<client>.+?) - System: (?<system>.+?)" +
                 " - Platform: (?<platform>.+?) - O2: (?<oxygen>OK|NOT OK)" +
                 " - Language: .+? \\((?<lang>.+?)\\)" +
-                "(?: - IRC Nickname: (?<nick>\\S+))",
+                "(?: - IRC Nickname: (?<nick>\\S+))?",
             "i"
         ),
         closed: /^!(?:close|clear)\s+(?:(?<case>\d+)|(?<client>\S+))(?:\s+(?<rat>.+))?/i,
@@ -252,17 +252,19 @@ export default class LogParser {
 
         this.onMatch(message, "ratsignal", (m) => {
             parsed = true;
-            EventDispatcher.dispatch(`callout.updatecase`, this, {
-                ...baseMessage,
-                id: parseInt(m.case),
-                client: m.client,
-                system: m.system,
-                sysconf: !m.sysconf,
-                platform: m.platform,
-                cr: m.oxygen === "NOT OK",
-                lang: Utils.getLangFromLocale(m.lang),
-                nick: m.nick || Utils.sanitizeNickname(m.client),
-            } as NewCase);
+            setTimeout(() => {
+                EventDispatcher.dispatch(`callout.updatecase`, this, {
+                    ...baseMessage,
+                    id: parseInt(m.case),
+                    client: m.client,
+                    system: m.system,
+                    sysconf: !m.sysconf,
+                    platform: m.platform,
+                    cr: m.oxygen === "NOT OK",
+                    // lang: Utils.getLangFromLocale(m.lang),
+                    nick: m.nick || Utils.sanitizeNickname(m.client),
+                } as NewCase);
+            }, 1000);
         });
 
         this.onMatch(message, "platform", (m) => {

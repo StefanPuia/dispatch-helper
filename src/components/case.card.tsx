@@ -478,7 +478,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private async setCaseSysconf(data: BaseMessage) {
-        this.changeState("sysconf", data, true);
+        this.changeState("sysconf", data, !!(data as any).sysconf);
     }
 
     private async setId(data: BaseMessage) {
