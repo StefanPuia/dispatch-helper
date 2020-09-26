@@ -3,11 +3,12 @@ import "../style/case-card.css";
 import React from "react";
 
 import { EventDispatcher } from "../core/event.dispatcher";
-import { Callout, NewCase } from "../core/log.parser";
+import { Callout, NewCase, BaseMessage } from "../core/log.parser";
 import Utils from "../core/utils";
 import CaseCard from "./case.card";
 import { CaseCardProps, CaseCardState } from "./case.card";
 import update from "immutability-helper";
+import Config from "../core/config";
 
 export interface CaseControllerProps {}
 
@@ -169,6 +170,17 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         EventDispatcher.listen("case.closed", this.handleCloseCase);
         EventDispatcher.listen("case.md", this.handleCaseMD);
         EventDispatcher.listen("callout.updatecase", this.updateCase);
+        EventDispatcher.listen("case.disconnect", async (data: any) => {
+            if (data.nick === "MechaSqueak[BOT]") {
+                Config.mechaDown = true;
+                EventDispatcher.dispatch("ERROR", this, "Mecha disconnected. Entering Mecha-Down mode.");
+            }
+        });
+        EventDispatcher.listen("case.connect", async (data: any) => {
+            if (data.nick === "MechaSqueak[BOT]") {
+                EventDispatcher.dispatch("ERROR", this, "Mecha reconnected. Disable Mecha-Down mode from the options.");
+            }
+        });
         EventDispatcher.listen("case.update", async (caseId: number) => {
             this.setState(
                 update(this.state, {
