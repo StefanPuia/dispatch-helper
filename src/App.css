@@ -130,9 +130,9 @@ div#dispatchSearch>section>div>span {
 div#options {
     position: fixed;
     top: 5vh;
-    bottom: 5vh;
-    left: 5vw;
-    right: 5vw;
+    width: 580px;
+    height: auto;
+    left: calc(calc(100vw - 580px) / 2);
     display: block;
     border: solid 1px var(--theme-border-colour);
     background-color: var(--theme-bg-light);

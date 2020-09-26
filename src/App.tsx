@@ -31,7 +31,11 @@ class App extends React.Component<AppProps, AppState> {
 
     constructor(props: AppProps) {
         super(props);
-        this.state = { logs: [], showSearch: false, showOptions: false };
+        this.state = {
+            logs: [],
+            showSearch: false,
+            showOptions: false,
+        };
         this.handleFocus = this.handleFocus.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
         this.handleSearchBlur = this.handleSearchBlur.bind(this);

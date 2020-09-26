@@ -18,6 +18,7 @@ import DispatchTextTR from "./dispatch-text/dispatch-text-tr";
 import { EventDispatcher } from "./event.dispatcher";
 import Utils, { Coords } from "./utils";
 import Config from "./config";
+import { EDSMSystem } from "./utils";
 
 export default class CaseHelper {
     private static LOCKED_SYSTEMS: { [system: string]: string } = {
@@ -188,13 +189,11 @@ export default class CaseHelper {
             const system = await Utils.getEDSMSystem(systemName);
             if (system && system.coords) {
                 let closest: { dist: number; waypoint?: Waypoint } = { dist: Infinity };
-                const waypoints: Waypoint[] = [...CaseHelper.WAYPOINTS, ...Config.getOwnRats(platform)];
-                for (const waypoint of waypoints) {
-                    const dist = Utils.distanceBetween(waypoint.coords, system.coords);
-                    if (dist <= closest.dist) {
-                        closest.dist = dist;
-                        closest.waypoint = waypoint;
-                    }
+                if (Config.onlyRats) {
+                    loopWaypoints(system, Config.getOwnRats(platform), closest);
+                }
+                if (!Config.onlyRats || !closest.waypoint) {
+                    loopWaypoints(system, CaseHelper.WAYPOINTS, closest);
                 }
                 if (closest.waypoint) {
                     return `${closest.dist.toFixed(2)}LY to ${closest.waypoint.name}`;
@@ -204,6 +203,20 @@ export default class CaseHelper {
             EventDispatcher.dispatch("error", this, err.message);
         }
         return "";
+
+        function loopWaypoints(
+            system: EDSMSystem,
+            waypoints: Waypoint[],
+            closest: { dist: number; waypoint?: Waypoint }
+        ) {
+            for (const waypoint of waypoints) {
+                const dist = Utils.distanceBetween(waypoint.coords, system.coords);
+                if (dist <= closest.dist) {
+                    closest.dist = dist;
+                    closest.waypoint = waypoint;
+                }
+            }
+        }
     }
 
     public static buildAllAutoDispatch(state: CaseCardState): { [key: string]: AutoDispatchFunction } {

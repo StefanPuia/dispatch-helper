@@ -3,11 +3,11 @@ const config = require("./config.json");
 const fs = require("fs");
 
 module.exports = (connections) => {
-    const client = new irc.Client("irc.fuelrats.com", config["irc-nick"], {
-        port: "+6667",
+    const client = new irc.Client(config["irc-server"], config["irc-nick"], {
+        port: config["irc-port"],
         realName: config["irc-realname"],
 
-        sasl: true,
+        sasl: false,
         userName: config["irc-name"],
         password: config["irc-password"],
 
@@ -51,8 +51,9 @@ module.exports = (connections) => {
         }
     });
 
-    client.addListener("error", function (message) {
-        log(`error: ${message}`);
+    client.addListener("error", function (error) {
+        console.trace(error);
+        log(`error: ${error.message}`);
     });
 
     client.connect(0, () => {

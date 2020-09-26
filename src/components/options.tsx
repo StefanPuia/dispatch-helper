@@ -20,7 +20,19 @@ class Options extends React.Component<OptionsProps, OptionsState> {
                 <h2>Options</h2>
                 <h3>My Rats</h3>
                 {this.renderMyRats()}
-                <h4>{CaseStats.guessNextCaseId()}</h4>
+                <div>
+                    <label>
+                        <input
+                            type="checkbox"
+                            {...{ checked: !!Config.onlyRats }}
+                            onChange={(e) => {
+                                Config.onlyRats = e.currentTarget.checked;
+                                this.forceUpdate();
+                            }}
+                        />
+                        Only show distances to rats
+                    </label>
+                </div>
             </div>
         );
     }
@@ -74,26 +86,6 @@ class Options extends React.Component<OptionsProps, OptionsState> {
                         <td>
                             <input onBlur={(e) => this.saveMyRat("", "name", e.currentTarget.value)} type="text" />
                         </td>
-                        {/*
-                            <td>
-                                <input
-                                    onBlur={(e) =>
-                                        this.saveMyRat("", "platform", e.currentTarget.value)
-                                    }
-                                    type="text"
-                                    defaultValue="PC"
-                                />
-                            </td>
-                            <td>
-                                <input
-                                    onBlur={(e) =>
-                                        this.saveMyRat("", "system", e.currentTarget.value)
-                                    }
-                                    type="text"
-                                    defaultValue="Sol"
-                                />
-                            </td>
-                        */}
                     </tr>
                 </tbody>
             </table>
@@ -128,8 +120,8 @@ class Options extends React.Component<OptionsProps, OptionsState> {
         } else {
             rat[key] = value;
         }
-        this.removeRat(oldName);
-        Config.setOwnRat(rat.name, rat.platform, rat.system);
+        await this.removeRat(oldName);
+        await Config.setOwnRat(rat.name, rat.platform, rat.system);
         await Config.getLSRats();
         this.forceUpdate();
     }

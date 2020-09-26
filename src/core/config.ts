@@ -86,6 +86,15 @@ export default class Config {
             EventDispatcher.dispatch("error", null, err.message || err);
         }
     }
+
+    public static get onlyRats() {
+        return localStorage.onlyRats === "true" || Config.get("onlyRats");
+    }
+
+    public static set onlyRats(value: boolean) {
+        Config.set("onlyRats", value);
+        localStorage.onlyRats = value;
+    }
 }
 
 declare global {

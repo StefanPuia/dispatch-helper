@@ -31,6 +31,10 @@ export class IRCReader {
         };
     }
 
+    public static disconnect() {
+        IRCReader.WEBSOCKET.close();
+    }
+
     private static getInstance() {
         if (!IRCReader.INSTANCE) {
             IRCReader.INSTANCE = new IRCReader();
