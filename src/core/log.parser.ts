@@ -34,10 +34,10 @@ export default class LogParser {
             "i"
         ),
         closed: /^!(?:close|clear)\s+(?:(?<case>\d+)|(?<client>[\w_]+))(?:\s+(?<rat>.+))?/i,
-        assign: /^!(?:go|assign|add)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<rats>.+)/i,
+        assign: /^!(?:go|assign|add)(?:-\w{2})?\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<rats>.+)/i,
         unassign: /^!(?:unassign|deassign|remove|rm|standdown)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<rats>.+)/i,
         active: /^!(?:active|activate|inactive|deactivate)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
-        md: /^!md\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+.+/i,
+        md: /^!(?:md|trash)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+.+/i,
         cr: /^!(?:cr|codered|casered)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
         sysconf: /#?(?<case>\d+).*?(?:(?:sysconf)|(?:sys conf)|(?:system confirmed))/i,
         sysconfRev: /(?:sysconf|system confirmed).*?#?(?<case>\d+)/i,

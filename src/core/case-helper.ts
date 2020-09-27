@@ -256,7 +256,7 @@ export default class CaseHelper {
             OPEN_PLAY: () => this.buildADObject("OPEN PLAY", dispatchText.openPlay()),
             OXYGEN_CHECK: () => this.buildADObject("OXYGEN CHECK", dispatchText.oxygenCheck()),
             PREP: () => this.buildADObject("PREP", dispatchText.getPrep(), dispatchText.getWelcome()),
-            PREP_CR: () => this.buildADObject("PREP CR", dispatchText.getCRPrep(), dispatchText.getMMConf()),
+            PREP_CR: () => this.buildADObject("PREP CR", dispatchText.getMMConf()),
             FR: () => this.buildADObject("FR", dispatchText.getPreFR(), dispatchText.getFR()),
             WR: () => this.buildADObject("WR", dispatchText.getPreWing(), dispatchText.getWing()),
             BC: () => this.buildADObject("BC", dispatchText.getPreBeacon(), dispatchText.getBeacon()),
