@@ -35,7 +35,7 @@ export default abstract class DispatchTextBase {
         if (Config.mechaDown) {
             return consolize ? this.mechaDownFact(this.consolize(fact)) : this.mechaDownFact(fact);
         } else {
-            return `!${this.localize(this.consolize(fact))} ${this.state.nick}`;
+            return `!${this.localize(consolize ? this.consolize(fact) : fact)} ${this.state.nick}`;
         }
     }
 
