@@ -15,8 +15,8 @@ export default class CaseStats {
 
     public static init() {
         window.CaseStats = CaseStats;
-        EventDispatcher.listen("callout.newcase", CaseStats.newCase);
-        EventDispatcher.listen("case.closed", CaseStats.caseClosed);
+        // EventDispatcher.listen("callout.newcase", CaseStats.newCase);
+        // EventDispatcher.listen("case.closed", CaseStats.caseClosed);
     }
 
     public static async newCase(newcaseData: NewCase) {

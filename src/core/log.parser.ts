@@ -7,21 +7,21 @@ import { EDSMSystem } from "./utils";
 export default class LogParser {
     private static INSTANCE: LogParser;
     private static REGEX: { [p: string]: RegExp } = {
-        jumps: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+))[^\d]+(?<jumps>\d+)\s*(?:j|jumps)[^\w]*/i,
-        jumpsRev: /(?<jumps>\d+)\s*(?:j|jumps)[^\d]+(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+))/i,
-        fr: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+)).*?(?:fr|friend)\s*(?<status>\+|-)/i,
-        frRev: /(?:fr|friend)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+))/i,
-        wr: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+)).*?(?:wr|wing)\s*(?<status>\+|-)/i,
-        wrRev: /(?:wr|wing)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+))/i,
-        bc: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+)).*?(?:bc|wb|beacon)\s*(?<status>\+|-)/i,
-        bcRev: /(?:bc|wb|beacon)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+))/i,
-        stdn: /(?:(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+)).*?)?(?:stnd|stdn|standing down|nvm|nevermind)/i,
-        stdnRev: /(?:stnd|stdn|standing down|nvm|nevermind)(?:.*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+)))?/i,
-        fuel: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+)).*?(?:fuel|fl)\s*(?<status>\+|-)/i,
-        fuelRev: /(?:fuel|fl)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>\S+))/i,
+        jumps: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))[^\d]+(?<jumps>\d+)\s*(?:j|jumps)[^\w]*/i,
+        jumpsRev: /(?<jumps>\d+)\s*(?:j|jumps)[^\d]+(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
+        fr: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:fr|friend)\s*(?<status>\+|-)/i,
+        frRev: /(?:fr|friend)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
+        wr: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:wr|wing)\s*(?<status>\+|-)/i,
+        wrRev: /(?:wr|wing)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
+        bc: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:bc|wb|beacon)\s*(?<status>\+|-)/i,
+        bcRev: /(?:bc|wb|beacon)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
+        stdn: /(?:(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?)?(?:stnd|stdn|standing down|nvm|nevermind)/i,
+        stdnRev: /(?:stnd|stdn|standing down|nvm|nevermind)(?:.*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)))?/i,
+        fuel: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:fuel|fl)\s*(?<status>\+|-)/i,
+        fuelRev: /(?:fuel|fl)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
         ratsignal: new RegExp(
             "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+?)" +
-                "(?: \\((?:(?:\\d+\\.\\d+ LY from .+?)|(?<sysconf>(?:not in galaxy database)|(?:too short to verify)))\\))?" +
+                "(?: \\((?:(?:\\d[\\d.]+ LY from .+?)|(?<sysconf>.+?))\\))?" +
                 " - Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK)(?: - Language: .+? \\((?<lang>.+?)\\))?\\s+" +
                 "(?:- IRC Nickname: (?<nick>.+?))?\\(Case #(?<case>\\d+)\\)",
             "i"
@@ -33,19 +33,19 @@ export default class LogParser {
                 "(?: - IRC Nickname: (?<nick>\\S+))?",
             "i"
         ),
-        closed: /^!(?:close|clear)\s+(?:(?<case>\d+)|(?<client>\S+))(?:\s+(?<rat>.+))?/i,
-        assign: /^!(?:go|assign|add)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<rats>.+)/i,
-        unassign: /^!(?:unassign|deassign|remove|rm|standdown)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<rats>.+)/i,
-        active: /^!(?:active|activate|inactive|deactivate)\s+(?:(?<case>\d+)|(?<client>\S+))/i,
-        md: /^!md\s+(?:(?<case>\d+)|(?<client>\S+))\s+.+/i,
-        cr: /^!(?:cr|codered|casered)\s+(?:(?<case>\d+)|(?<client>\S+))/i,
+        closed: /^!(?:close|clear)\s+(?:(?<case>\d+)|(?<client>[\w_]+))(?:\s+(?<rat>.+))?/i,
+        assign: /^!(?:go|assign|add)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<rats>.+)/i,
+        unassign: /^!(?:unassign|deassign|remove|rm|standdown)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<rats>.+)/i,
+        active: /^!(?:active|activate|inactive|deactivate)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
+        md: /^!md\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+.+/i,
+        cr: /^!(?:cr|codered|casered)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
         sysconf: /#?(?<case>\d+).*?(?:(?:sysconf)|(?:sys conf)|(?:system confirmed))/i,
         sysconfRev: /(?:sysconf|system confirmed).*?#?(?<case>\d+)/i,
-        sys: /^!(?:sys|system|loc|location)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<system>.+)/i,
+        sys: /^!(?:sys|system|loc|location)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<system>.+)/i,
         intelliGrab: /(?:#|case)\s*(?<case>\d+)/i,
         prep: /^!(?<prepType>(?:prep|pcquit|psquit|xquit))(?:-(?<language>\S+))?\s(?<nick>\S+)/i,
-        nick: /^!(?:nick|nickname|ircnick)\s+(?:(?<case>\d+)|(?<client>\S+))\s+(?<newnick>.+)/i,
-        platform: /^!(?<platform>xb|ps|pc)\s+(?:(?<case>\d+)|(?<client>\S+))/i,
+        nick: /^!(?:nick|nickname|ircnick)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<newnick>.+)/i,
+        platform: /^!(?<platform>xb|ps|pc)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
         // eslint-disable-next-line no-control-regex
         ircAction: /^\x01ACTION (.+)\x01$/,
 
@@ -252,6 +252,12 @@ export default class LogParser {
 
         this.onMatch(message, "ratsignal", (m) => {
             parsed = true;
+            const platforms: any = {
+                Xbox: "XB",
+                PS4: "PS4",
+                PS: "PS4",
+                PC: "PC",
+            };
             setTimeout(() => {
                 EventDispatcher.dispatch(`callout.updatecase`, this, {
                     ...baseMessage,
@@ -259,7 +265,7 @@ export default class LogParser {
                     client: m.client,
                     system: m.system,
                     sysconf: !m.sysconf,
-                    platform: m.platform,
+                    platform: platforms[m.platform],
                     cr: m.oxygen === "NOT OK",
                     // lang: Utils.getLangFromLocale(m.lang),
                     nick: m.nick || Utils.sanitizeNickname(m.client),

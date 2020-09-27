@@ -152,7 +152,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
                     sysconf: newState.system,
                 });
             }
-            if (oldState.platform !== newState.platform) {
+            if (oldState.platform !== newState.platform && ["PC", "XB", "PS4"].includes(newState.platform)) {
                 caseChange.push("platform");
                 await EventDispatcher.dispatch("case.platform", this, {
                     ...baseMessage,
@@ -181,7 +181,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
 
     componentDidMount() {
         EventDispatcher.listen("callout.newcase", this.handleNewCase);
-        EventDispatcher.listen("case.closed", this.handleCloseCase);
+        EventDispatcher.listen("case.closed", this.handleCloseCase, 10);
         EventDispatcher.listen("case.md", this.handleCaseMD);
         EventDispatcher.listen("callout.updatecase", this.updateCase);
         EventDispatcher.listen("case.disconnect", async (data: any) => {

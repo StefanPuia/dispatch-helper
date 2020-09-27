@@ -71,6 +71,9 @@ export default abstract class DispatchTextBase {
     }
 
     public getAssignedRats() {
+        if (Config.mechaDown) {
+            return Object.keys(this.state.rats);
+        }
         return Object.keys(this.state.rats).filter((rat) => this.state.rats[rat].assigned === true);
     }
 
