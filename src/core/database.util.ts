@@ -65,7 +65,7 @@ export default class DatabaseUtil {
         });
     }
 
-    public static async getEDSMSystem(systemName: string) {
+    public static async getEDSMSystem(systemName: string = "") {
         return new Promise(async (resolve, reject) => {
             (await this.getInstance()).database
                 .transaction("edsm_cache")

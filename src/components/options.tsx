@@ -2,7 +2,6 @@ import React from "react";
 import Config from "../core/config";
 import Utils from "../core/utils";
 import { EventDispatcher } from "../core/event.dispatcher";
-import CaseStats from "../test/case-stats";
 export interface OptionsProps {}
 
 export interface OptionsState {}
@@ -31,6 +30,19 @@ class Options extends React.Component<OptionsProps, OptionsState> {
                             }}
                         />
                         Only show distances to rats
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        <input
+                            type="checkbox"
+                            {...{ checked: !!Config.mechaDown }}
+                            onChange={(e) => {
+                                Config.mechaDown = e.currentTarget.checked;
+                                this.forceUpdate();
+                            }}
+                        />
+                        Mecha is down
                     </label>
                 </div>
             </div>

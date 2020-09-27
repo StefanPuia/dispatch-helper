@@ -101,12 +101,18 @@ export default class TestTranslation {
             this.buildOutputLine("Also wing invite - 1 rat", soloHelper.alsoWR()),
             this.buildOutputLine("Also wing invite - 2 rats", multiHelper.alsoWR()),
 
-            this.buildOutputLine("ETA 1min", multiHelper.getEta(1)),
-            this.buildOutputLine("ETA 2min", multiHelper.getEta(2)),
-            this.buildOutputLine("ETA 10min", multiHelper.getEta(10)),
-            this.buildOutputLine("ETA 22min", multiHelper.getEta(22)),
-            this.buildOutputLine("ETA 23min", multiHelper.getEta(23)),
-            this.buildOutputLine("ETA 50min", multiHelper.getEta(50)),
+            this.buildOutputLine("ETA solo 1min", soloHelper.getEta(1)),
+            this.buildOutputLine("ETA solo 2min", soloHelper.getEta(2)),
+            this.buildOutputLine("ETA solo 10min", soloHelper.getEta(10)),
+            this.buildOutputLine("ETA solo 22min", soloHelper.getEta(22)),
+            this.buildOutputLine("ETA solo 23min", soloHelper.getEta(23)),
+            this.buildOutputLine("ETA solo 50min", soloHelper.getEta(50)),
+            this.buildOutputLine("ETA multi 1min", multiHelper.getEta(1)),
+            this.buildOutputLine("ETA multi 2min", multiHelper.getEta(2)),
+            this.buildOutputLine("ETA multi 10min", multiHelper.getEta(10)),
+            this.buildOutputLine("ETA multi 22min", multiHelper.getEta(22)),
+            this.buildOutputLine("ETA multi 23min", multiHelper.getEta(23)),
+            this.buildOutputLine("ETA multi 50min", multiHelper.getEta(50)),
         ].join("\n\n");
     }
 
@@ -155,6 +161,7 @@ export default class TestTranslation {
     private static genericHelper(): CaseCardState {
         return {
             id: 0,
+            client: "Client",
             rats: [] as any,
             connected: true,
             active: true,

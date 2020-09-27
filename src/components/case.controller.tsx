@@ -8,6 +8,7 @@ import Utils from "../core/utils";
 import CaseCard from "./case.card";
 import { CaseCardProps, CaseCardState } from "./case.card";
 import update from "immutability-helper";
+import Config from "../core/config";
 
 export interface CaseControllerProps {}
 
@@ -27,6 +28,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         this.handleCloseCase = this.handleCloseCase.bind(this);
         this.handleNewCase = this.handleNewCase.bind(this);
         this.removeCase = this.removeCase.bind(this);
+        this.updateCase = this.updateCase.bind(this);
     }
 
     render() {
@@ -38,22 +40,27 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
     }
 
     private caseSorter(a: JSX.Element, b: JSX.Element) {
-        const A = CaseController.caseData[a.props.id];
-        const B = CaseController.caseData[b.props.id];
-        if (A?.state && B?.state) {
-            if (A.state.active < B.state.active) return 1;
-            if (A.state.active > B.state.active) return -1;
-            if (A.state.cr < B.state.cr) return 1;
-            if (A.state.cr > B.state.cr) return -1;
-        } else {
-            if (a.props.cr < b.props.cr) return 1;
-            if (a.props.cr > b.props.cr) return -1;
+        const caseIdA = CaseController.getCaseNumberForClient(a.props.client);
+        const caseIdB = CaseController.getCaseNumberForClient(b.props.client);
+        if (caseIdA && caseIdB) {
+            const A = CaseController.caseData[caseIdA];
+            const B = CaseController.caseData[caseIdB];
+            if (A?.state && B?.state) {
+                if (A.state.active < B.state.active) return 1;
+                if (A.state.active > B.state.active) return -1;
+                if (A.state.cr < B.state.cr) return 1;
+                if (A.state.cr > B.state.cr) return -1;
+            } else {
+                if (a.props.cr < b.props.cr) return 1;
+                if (a.props.cr > b.props.cr) return -1;
+            }
         }
         return a.props.created.getTime() - b.props.created.getTime();
     }
 
     private removeCase(data: Callout) {
-        const index = this.state.cases.findIndex((c: any) => c.props.id === data.id);
+        const client = CaseController.getClientForCaseNumber(data.id);
+        const index = this.state.cases.findIndex((c: JSX.Element) => c.props.client === client);
         if (index > -1) {
             if (data.rat && !CaseController.caseData[data.id].state?.rats[data.rat]) return;
             delete CaseController.caseData[data.id];
@@ -89,7 +96,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
                 system={data.system}
                 sysconf={data.sysconf}
                 platform={data.platform}
-                lang={(data.lang.split("-")[0] || "").toUpperCase()}
+                lang={data.lang || "EN"}
                 created={data.time}
                 cr={data.cr}
             />
@@ -106,10 +113,88 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         );
     }
 
+    private async updateCase(newState: NewCase) {
+        const existingCase = Object.values(CaseController.caseData).find(
+            ({ state }) => state && state.client === newState.client
+        );
+        if (existingCase && existingCase.state) {
+            const oldState = existingCase.state;
+            const currentCaseId = oldState.id !== newState.id ? newState.id : oldState.id;
+            const baseMessage: any = {
+                id: currentCaseId,
+            };
+            let caseChange: string[] = [];
+            if (oldState.id !== newState.id) {
+                caseChange.push("ID");
+                await EventDispatcher.dispatch("case.changeid", this, {
+                    id: oldState.id,
+                    newId: newState.id,
+                });
+            }
+            if (oldState.cr !== newState.cr) {
+                caseChange.push("CR");
+                await EventDispatcher.dispatch("case.cr", this, {
+                    ...baseMessage,
+                    cr: newState.cr,
+                });
+            }
+            if (oldState.system !== newState.system) {
+                caseChange.push("system");
+                await EventDispatcher.dispatch("case.sys", this, {
+                    ...baseMessage,
+                    sys: newState.system,
+                });
+            }
+            if (oldState.sysconf !== newState.sysconf) {
+                caseChange.push("sysconf");
+                await EventDispatcher.dispatch("case.sysconf", this, {
+                    ...baseMessage,
+                    sysconf: newState.system,
+                });
+            }
+            if (oldState.platform !== newState.platform && ["PC", "XB", "PS4"].includes(newState.platform)) {
+                caseChange.push("platform");
+                await EventDispatcher.dispatch("case.platform", this, {
+                    ...baseMessage,
+                    platform: newState.platform,
+                });
+            }
+            if (newState.lang && oldState.lang !== newState.lang) {
+                caseChange.push("lang");
+                await EventDispatcher.dispatch("case.lang", this, {
+                    ...baseMessage,
+                    lang: newState.lang,
+                });
+            }
+            if (caseChange.length) {
+                Utils.sendMessage(
+                    "SYSTEM",
+                    `<span style="color: red">Incoming signal made changes to #${currentCaseId} (${caseChange.join(
+                        ", "
+                    )})</span>`
+                );
+            }
+        } else {
+            EventDispatcher.dispatch("callout.newcase", this, newState);
+        }
+    }
+
     componentDidMount() {
         EventDispatcher.listen("callout.newcase", this.handleNewCase);
-        EventDispatcher.listen("case.closed", this.handleCloseCase);
+        EventDispatcher.listen("case.closed", this.handleCloseCase, 10);
         EventDispatcher.listen("case.md", this.handleCaseMD);
+        EventDispatcher.listen("callout.updatecase", this.updateCase);
+        EventDispatcher.listen("case.disconnect", async (data: any) => {
+            if (data.nick === "MechaSqueak[BOT]") {
+                Config.mechaDown = true;
+                EventDispatcher.dispatch("error", this, "Mecha disconnected. Entering Mecha-Down mode.");
+            }
+        });
+        EventDispatcher.listen("case.connect", async (data: any) => {
+            if (data.nick === "MechaSqueak[BOT]") {
+                EventDispatcher.dispatch("error", this, "Mecha reconnected. Disable Mecha-Down mode from the options.");
+            }
+        });
         EventDispatcher.listen("case.update", async (caseId: number) => {
             this.setState(
                 update(this.state, {
@@ -123,7 +208,17 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
 
     public static getCaseNumberForNick(nick: string): number | undefined {
         const caseCard = Object.values(CaseController.caseData).find(({ state }) => state?.nick === nick);
-        return caseCard ? caseCard?.props?.id : undefined;
+        return caseCard ? caseCard?.state?.id : undefined;
+    }
+
+    public static getCaseNumberForClient(client: string): number | undefined {
+        const caseCard = Object.values(CaseController.caseData).find(({ state }) => state?.client === client);
+        return caseCard ? caseCard?.state?.id : undefined;
+    }
+
+    public static getClientForCaseNumber(id: number): string | undefined {
+        const caseCard = Object.values(CaseController.caseData).find(({ state }) => state?.id === id);
+        return caseCard ? caseCard?.state?.client : undefined;
     }
 }
 
