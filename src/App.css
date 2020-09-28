@@ -14,6 +14,7 @@
 
     --z-chat: 2;
     --z-bugreport: 3;
+    --z-mecha-down-notif: 3;
     --z-options: 4;
 }
 
@@ -139,4 +140,32 @@ div#options {
     z-index: var(--z-options);
     padding: 1em 2em;
     overflow-y: auto;
+}
+
+div#mechaDownNotif {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    z-index: var(--z-mecha-down-notif);
+    animation-name: tick;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes tick {
+    0% {
+        background-color: red;
+    }
+
+    50% {
+        background-color: #000;
+    }
+
+    100% {
+        background-color: red;
+    }
 }

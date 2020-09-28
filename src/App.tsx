@@ -13,6 +13,7 @@ import { EventDispatcher } from "./core/event.dispatcher";
 import { IRCReader } from "./core/irc.reader";
 import LogParser from "./core/log.parser";
 import Utils from "./core/utils";
+import Config from "./core/config";
 
 export interface AppProps {}
 
@@ -20,6 +21,7 @@ export interface AppState {
     logs: Array<any>;
     showSearch: boolean;
     showOptions: boolean;
+    mechaDown: boolean;
 }
 
 class App extends React.Component<AppProps, AppState> {
@@ -35,11 +37,13 @@ class App extends React.Component<AppProps, AppState> {
             logs: [],
             showSearch: false,
             showOptions: false,
+            mechaDown: false,
         };
         this.handleFocus = this.handleFocus.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
         this.handleSearchBlur = this.handleSearchBlur.bind(this);
         this.handleOptionsBlur = this.handleOptionsBlur.bind(this);
+        this.handleMechaStatus = this.handleMechaStatus.bind(this);
 
         DatabaseUtil.init();
         const { hidden, visibilityChange } = Utils.getVisibilityChangeByBrowser();
@@ -62,6 +66,7 @@ class App extends React.Component<AppProps, AppState> {
                 </a>
                 {this.state.showSearch ? <DispatchSearch /> : ""}
                 {this.state.showOptions ? <Options /> : ""}
+                {this.renderMechaDown()}
             </>
         );
     }
@@ -92,6 +97,19 @@ class App extends React.Component<AppProps, AppState> {
         this.setState({ showOptions: false });
     }
 
+    private async handleMechaStatus(status: boolean) {
+        this.setState({ mechaDown: status });
+    }
+
+    private renderMechaDown() {
+        if (!this.state.mechaDown) return <></>;
+        return (
+            <>
+                <div id="mechaDownNotif" title="Running in Mecha-Down mode!"></div>
+            </>
+        );
+    }
+
     componentWilUnmount() {
         document.removeEventListener(App.visibility.handle, this.handleFocus);
     }
@@ -101,6 +119,8 @@ class App extends React.Component<AppProps, AppState> {
         document.addEventListener("keydown", this.handleKeyUp);
         EventDispatcher.listen("dispatch-search.blur", this.handleSearchBlur);
         EventDispatcher.listen("options.blur", this.handleOptionsBlur);
+        EventDispatcher.listen("mecha.status", this.handleMechaStatus);
+        Config.mechaDown = !!Config.mechaDown;
 
         window.onbeforeunload = function (e: any) {
             e = e || window.event;

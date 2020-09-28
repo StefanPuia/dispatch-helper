@@ -16,7 +16,7 @@ class Options extends React.Component<OptionsProps, OptionsState> {
     render() {
         return (
             <div id="options" key={Utils.getUniqueKey("options-div")}>
-                <h2>Options</h2>
+                <h2 style={{ marginTop: 0 }}>Options</h2>
                 <h3>My Rats</h3>
                 {this.renderMyRats()}
                 <div>
@@ -32,6 +32,7 @@ class Options extends React.Component<OptionsProps, OptionsState> {
                         Only show distances to rats
                     </label>
                 </div>
+                <h3>Misc</h3>
                 <div>
                     <label>
                         <input

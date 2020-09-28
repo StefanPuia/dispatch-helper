@@ -284,7 +284,7 @@ export default class CaseHelper {
         // CODE RED
         if (state.cr) {
             if (!state.prep) {
-                autoSpatch.push(dispatchFacts.PREP_CR());
+                autoSpatch.push(dispatchFacts.MM_CONF());
             }
 
             if (!state.sysconf) {

@@ -103,6 +103,7 @@ export default class Config {
     public static set mechaDown(value: boolean) {
         Config.set("mechaDown", value);
         localStorage.mechaDown = value;
+        EventDispatcher.dispatch("mecha.status", this, value);
     }
 }
 
