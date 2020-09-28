@@ -28,7 +28,7 @@ export interface CaseCardState {
     id: number;
     client: string;
     rats: { [user: string]: CaseRatState };
-    connected: boolean;
+    connected: number;
     active: boolean;
     cr: boolean;
     nick: string;
@@ -66,7 +66,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             id: this.props.id,
             client: this.props.client,
             rats: {},
-            connected: true,
+            connected: 1,
             active: true,
             cr: this.props.cr,
             nick: this.props.nick,
@@ -136,7 +136,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                     <div
                         className="client-name"
                         style={
-                            !this.state.connected
+                            this.state.connected === 0
                                 ? {
                                       color: "red",
                                       textDecoration: "underline",
@@ -323,7 +323,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private handleConnectDisconnect(isConnect: boolean = true, data: BaseMessage) {
         if (this.state.nick === data.raw.user) {
-            this.updateState({ connected: { $set: isConnect }, unread: { $set: true } });
+            const newVal = this.state.connected + (isConnect ? 1 : -1);
+            this.updateState({ connected: { $set: newVal }, unread: { $set: !isConnect } });
         }
     }
 

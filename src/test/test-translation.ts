@@ -163,7 +163,7 @@ export default class TestTranslation {
             id: 0,
             client: "Client",
             rats: [] as any,
-            connected: true,
+            connected: 1,
             active: true,
             cr: true,
             nick: "Client",

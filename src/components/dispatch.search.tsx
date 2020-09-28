@@ -56,7 +56,7 @@ class DispatchSearch extends React.Component<DispatchSearchProps, DispatchSearch
                             id: -1,
                             client: "",
                             rats: [] as any,
-                            connected: true,
+                            connected: 1,
                             active: true,
                             cr: true,
                             nick: "",
