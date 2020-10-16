@@ -17,13 +17,14 @@ export default class LogParser {
         bcRev: /(?:bc|wb|beacon)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
         stdn: /(?:(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?)?(?:stnd|stdn|standing down|nvm|nevermind)/i,
         stdnRev: /(?:stnd|stdn|standing down|nvm|nevermind)(?:.*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)))?/i,
-        fuel: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:fuel|fl)\s*(?<status>\+|-)/i,
-        fuelRev: /(?:fuel|fl)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
+        fuel: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:feul|fule|fuel|fl)\s*(?<status>\+|-)/i,
+        fuelRev: /(?:feul|fule|fuel|fl)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
         ratsignal: new RegExp(
             "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+?)" +
                 "(?: \\((?:(?:\\d[\\d.]+ LY from .+?)|(?<sysconf>.+?))\\))?" +
-                " - Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK)(?: - Language: .+? \\((?<lang>.+?)\\))?\\s+" +
-                "(?:- IRC Nickname: (?<nick>.+?))?\\(Case #(?<case>\\d+)\\)",
+                " - Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK)" +
+                "(?: Language: .+? \\((?<lang>.+?)\\))?\\s+" +
+                "\\(Case #(?<case>\\d+)\\)",
             "i"
         ),
         incoming: new RegExp(
@@ -246,7 +247,7 @@ export default class LogParser {
             EventDispatcher.dispatch(`case.sys`, this, {
                 ...baseMessage,
                 id: this.caseNickId(m.case, m.client),
-                sys: m.system,
+                sys: Utils.cleanSystemName(m.system),
             } as BaseMessage);
         });
 
@@ -263,7 +264,7 @@ export default class LogParser {
                     ...baseMessage,
                     id: parseInt(m.case),
                     client: m.client,
-                    system: m.system,
+                    system: Utils.cleanSystemName(m.system),
                     sysconf: !m.sysconf,
                     platform: platforms[m.platform],
                     cr: m.oxygen === "NOT OK",
@@ -304,7 +305,7 @@ export default class LogParser {
         this.onMatch(message, "incoming", async (m) => {
             let system: EDSMSystem | undefined;
             try {
-                system = await Utils.getEDSMSystem(m.system);
+                system = await Utils.getEDSMSystem(Utils.cleanSystemName(m.system));
             } catch (err) {}
             let existingCase = Object.values(CaseController.caseData).find(
                 ({ state }) => state && state.client === m.client
@@ -327,7 +328,7 @@ export default class LogParser {
                     ...baseMessage,
                     id: getCaseNumber(),
                     client: m.client,
-                    system: m.system,
+                    system: Utils.cleanSystemName(m.system),
                     sysconf: !!system,
                     platform: m.platform,
                     cr: m.oxygen === "NOT OK",
@@ -339,7 +340,7 @@ export default class LogParser {
                     ...baseMessage,
                     id: existingCase.state.id,
                     client: m.client,
-                    system: m.system,
+                    system: Utils.cleanSystemName(m.system),
                     sysconf: !!system,
                     platform: m.platform,
                     cr: m.oxygen === "NOT OK",

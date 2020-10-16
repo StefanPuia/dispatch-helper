@@ -59,6 +59,13 @@ export default abstract class DispatchTextBase {
         return this.fact("prep", false);
     }
 
+    public getClose() {
+        if (!Config.mechaDown) {
+            return `!close ${this.state.id} ${this.getFuelRats()[0] || ""}`;
+        }
+        return "";
+    }
+
     public getFR() {
         if (this.state.cr && this.state.platform === "PC") {
             return this.fact("frcr");

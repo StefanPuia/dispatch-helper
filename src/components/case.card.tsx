@@ -216,7 +216,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
 
     private renderRatJumps(rat: string) {
         const { jumps, assigned } = this.state.rats[rat];
-        return jumps && !assigned ? ` - ${jumps}j` : "";
+        return jumps !== undefined && !assigned ? ` - ${jumps}j` : "";
     }
 
     private renderRatName(rat: string) {
@@ -495,7 +495,6 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     private async setCaseSystem(data: BaseMessage) {
         if (data.id !== this.state.id) return;
         this.changeState("system", data, undefined, true, "sys");
-        this.setState({ sysconf: true });
         this.getWaypointDistance();
     }
 

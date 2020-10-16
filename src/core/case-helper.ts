@@ -260,6 +260,7 @@ export default class CaseHelper {
             FR: () => this.buildADObject("FR", dispatchText.getPreFR(), dispatchText.getFR()),
             WR: () => this.buildADObject("WR", dispatchText.getPreWing(), dispatchText.getWing()),
             BC: () => this.buildADObject("BC", dispatchText.getPreBeacon(), dispatchText.getBeacon()),
+            CLOSE: () => this.buildADObject("CLOSE", dispatchText.getSuccess(), dispatchText.getClose()),
         };
     }
 
@@ -283,9 +284,7 @@ export default class CaseHelper {
 
         // CODE RED
         if (state.cr) {
-            if (!state.prep) {
-                autoSpatch.push(dispatchFacts.MM_CONF());
-            }
+            autoSpatch.push(dispatchFacts.MM_CONF());
 
             if (!state.sysconf) {
                 autoSpatch.push(dispatchFacts.CR_SYSCONF());
@@ -303,6 +302,7 @@ export default class CaseHelper {
         // NORMAL RESCUE
         if (gotFuel) {
             autoSpatch.push(dispatchFacts.SUCCESS());
+            autoSpatch.push(dispatchFacts.CLOSE());
         }
 
         if (!state.prep && !state.cr) {

@@ -32,6 +32,10 @@ export default class Utils {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2));
     }
 
+    public static cleanSystemName(system: string): string {
+        return system.trim().replace(/(?:^system\s*)|(?:\s*system$)/gi, "");
+    }
+
     public static async getEDSMSystem(systemName: string): Promise<EDSMSystem> {
         let system = (await this.getSystemFromLocalCache(systemName)) || (await this.getSystemFromEDSMApi(systemName));
         if (system) {

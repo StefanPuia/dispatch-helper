@@ -131,7 +131,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
                     newId: newState.id,
                 });
             }
-            if (oldState.cr !== newState.cr) {
+            if (oldState.cr !== newState.cr && newState.cr === true) {
                 caseChange.push("CR");
                 await EventDispatcher.dispatch("case.cr", this, {
                     ...baseMessage,
@@ -140,31 +140,31 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
             }
             if (oldState.system !== newState.system) {
                 caseChange.push("system");
-                await EventDispatcher.dispatch("case.sys", this, {
-                    ...baseMessage,
-                    sys: newState.system,
-                });
+                // await EventDispatcher.dispatch("case.sys", this, {
+                //     ...baseMessage,
+                //     sys: newState.system,
+                // });
             }
             if (oldState.sysconf !== newState.sysconf) {
                 caseChange.push("sysconf");
-                await EventDispatcher.dispatch("case.sysconf", this, {
-                    ...baseMessage,
-                    sysconf: newState.system,
-                });
+                // await EventDispatcher.dispatch("case.sysconf", this, {
+                //     ...baseMessage,
+                //     sysconf: newState.system,
+                // });
             }
             if (oldState.platform !== newState.platform && ["PC", "XB", "PS4"].includes(newState.platform)) {
                 caseChange.push("platform");
-                await EventDispatcher.dispatch("case.platform", this, {
-                    ...baseMessage,
-                    platform: newState.platform,
-                });
+                // await EventDispatcher.dispatch("case.platform", this, {
+                //     ...baseMessage,
+                //     platform: newState.platform,
+                // });
             }
             if (newState.lang && oldState.lang !== newState.lang) {
                 caseChange.push("lang");
-                await EventDispatcher.dispatch("case.lang", this, {
-                    ...baseMessage,
-                    lang: newState.lang,
-                });
+                // await EventDispatcher.dispatch("case.lang", this, {
+                //     ...baseMessage,
+                //     lang: newState.lang,
+                // });
             }
             if (caseChange.length) {
                 Utils.sendMessage(
@@ -192,7 +192,8 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         });
         EventDispatcher.listen("case.connect", async (data: any) => {
             if (data.nick === "MechaSqueak[BOT]") {
-                EventDispatcher.dispatch("error", this, "Mecha reconnected. Disable Mecha-Down mode from the options.");
+                Config.mechaDown = false;
+                EventDispatcher.dispatch("error", this, "Mecha reconnected. Disabling Mecha-Down mode.");
             }
         });
         EventDispatcher.listen("case.update", async (caseId: number) => {

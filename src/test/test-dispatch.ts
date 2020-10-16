@@ -2,10 +2,13 @@ import { EventDispatcher } from "../core/event.dispatcher";
 import Chat from "../components/chat";
 import Utils from "../core/utils";
 import CaseStats from "./case-stats";
+import CaseController from "../components/case.controller";
 
 declare global {
     interface Window {
         TestDispatch: any;
+        CaseController: any;
+        EventDispatcher: any;
     }
 }
 
@@ -204,3 +207,5 @@ export default class TestDispatch {
 }
 
 window.TestDispatch = TestDispatch;
+window.CaseController = CaseController;
+window.EventDispatcher = EventDispatcher;
