@@ -86,6 +86,7 @@ class App extends React.Component<AppProps, AppState> {
             return false;
         } else if (e.key === "Escape" && this.state.showOptions) {
             EventDispatcher.dispatch("options.blur", null, null);
+            EventDispatcher.dispatch("dispatch-search.blur", null, null);
         }
     }
 
