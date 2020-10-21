@@ -7,6 +7,8 @@ import { EDSMSystem } from "./utils";
 export default class LogParser {
     private static INSTANCE: LogParser;
     private static REGEX: { [p: string]: RegExp } = {
+        // intelligrab
+        intelliGrab: /(?:#|case)\s*(?<case>\d+)/i,
         jumps: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))[^\d]+(?<jumps>\d+)\s*(?:j|jumps)[^\w]*/i,
         jumpsRev: /(?<jumps>\d+)\s*(?:j|jumps)[^\d]+(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
         fr: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:fr|friend)\s*(?<status>\+|-)/i,
@@ -25,6 +27,22 @@ export default class LogParser {
         ezRev: /(?:ez|exclusion|(?:too?\s*close)).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
         lsOff: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:ls|(?:life\s*support))/i,
         lsOffRev: /(?:ls|(?:life\s*support)).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
+        sysconf: /#?(?<case>\d+).*?(?:(?:sysconf)|(?:sys conf)|(?:system confirmed))/i,
+        sysconfRev: /(?:sysconf|system confirmed).*?#?(?<case>\d+)/i,
+
+        // commands
+        closed: /^!(?:close|clear)\s+(?:(?<case>\d+)|(?<client>[\w_]+))(?:\s+(?<rat>.+))?/i,
+        assign: /^!(?:go|assign|add)(?:-\w{2})?\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<rats>.+)/i,
+        unassign: /^!(?:unassign|deassign|remove|rm|standdown)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<rats>.+)/i,
+        active: /^!(?:active|activate|inactive|deactivate)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
+        md: /^!(?:md|trash)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+.+/i,
+        cr: /^!(?:cr|codered|casered)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
+        sys: /^!(?:sys|system|loc|location)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<system>.+)/i,
+        prep: /^!(?<prepType>(?:prep|pcquit|psquit|xquit))(?:-(?<language>\S+))?\s(?<nick>\S+)/i,
+        nick: /^!(?:nick|nickname|ircnick)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<newnick>.+)/i,
+        platform: /^!(?<platform>xb|ps|pc)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
+
+        // bots
         ratsignal: new RegExp(
             "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+?)" +
                 "(?: \\((?:(?:\\d[\\d.]+ LY from .+?)|(?<sysconf>.+?))\\))?" +
@@ -40,22 +58,11 @@ export default class LogParser {
                 "(?: - IRC Nickname: (?<nick>\\S+))?",
             "i"
         ),
-        closed: /^!(?:close|clear)\s+(?:(?<case>\d+)|(?<client>[\w_]+))(?:\s+(?<rat>.+))?/i,
-        assign: /^!(?:go|assign|add)(?:-\w{2})?\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<rats>.+)/i,
-        unassign: /^!(?:unassign|deassign|remove|rm|standdown)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<rats>.+)/i,
-        active: /^!(?:active|activate|inactive|deactivate)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
-        md: /^!(?:md|trash)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+.+/i,
-        cr: /^!(?:cr|codered|casered)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
-        sysconf: /#?(?<case>\d+).*?(?:(?:sysconf)|(?:sys conf)|(?:system confirmed))/i,
-        sysconfRev: /(?:sysconf|system confirmed).*?#?(?<case>\d+)/i,
-        sys: /^!(?:sys|system|loc|location)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<system>.+)/i,
-        intelliGrab: /(?:#|case)\s*(?<case>\d+)/i,
-        prep: /^!(?<prepType>(?:prep|pcquit|psquit|xquit))(?:-(?<language>\S+))?\s(?<nick>\S+)/i,
-        nick: /^!(?:nick|nickname|ircnick)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<newnick>.+)/i,
-        platform: /^!(?<platform>xb|ps|pc)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
+        sysCase: /^System for case #(?<case>\d+) .+? has been changed to "(?<system>.+?)"/i,
+
+        // other
         // eslint-disable-next-line no-control-regex
         ircAction: /^\x01ACTION (.+)\x01$/,
-
         force: /^=(?<nick>\S+)\s+(?<message>.+)$/i,
     };
 
@@ -355,6 +362,15 @@ export default class LogParser {
                     nick: Utils.sanitizeNickname(m.nick),
                 } as NewCase);
             }
+        });
+
+        this.onMatch(message, "sysCase", (m) => {
+            parsed = true;
+            EventDispatcher.dispatch(`case.sys`, this, {
+                ...baseMessage,
+                id: this.caseNickId(m.case),
+                sys: m.system,
+            } as BaseMessage);
         });
 
         this.onMatch(message, ["notOpen", "notOpenRev"], (m) => {
