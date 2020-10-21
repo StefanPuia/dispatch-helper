@@ -1,4 +1,3 @@
-import { EventDispatcher } from "../core/event.dispatcher";
 import { NewCase, Callout } from "../core/log.parser";
 import Utils from "../core/utils";
 export default class CaseStats {

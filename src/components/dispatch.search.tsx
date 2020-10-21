@@ -67,6 +67,9 @@ class DispatchSearch extends React.Component<DispatchSearchProps, DispatchSearch
                             unread: true,
                             prep: false,
                             lang: "EN",
+                            gameStatus: "SOLO",
+                            exclusionZone: true,
+                            lifeSupport: false,
                         };
                         if (search.groups.case) {
                             const caseData = CaseController.caseData[parseInt(search.groups.case)];

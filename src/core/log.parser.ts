@@ -19,6 +19,12 @@ export default class LogParser {
         stdnRev: /(?:stnd|stdn|standing down|nvm|nevermind)(?:.*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)))?/i,
         fuel: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:feul|fule|fuel|fl)\s*(?<status>\+|-)/i,
         fuelRev: /(?:feul|fule|fuel|fl)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
+        notOpen: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:solo|pg|private|sg)/i,
+        notOpenRev: /(?:solo|pg|private|sg).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
+        ez: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:ez|exclusion|(?:too?\s*close))/i,
+        ezRev: /(?:ez|exclusion|(?:too?\s*close)).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
+        lsOff: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:ls|(?:life\s*support))/i,
+        lsOffRev: /(?:ls|(?:life\s*support)).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
         ratsignal: new RegExp(
             "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+?)" +
                 "(?: \\((?:(?:\\d[\\d.]+ LY from .+?)|(?<sysconf>.+?))\\))?" +
@@ -349,6 +355,30 @@ export default class LogParser {
                     nick: Utils.sanitizeNickname(m.nick),
                 } as NewCase);
             }
+        });
+
+        this.onMatch(message, ["notOpen", "notOpenRev"], (m) => {
+            parsed = true;
+            EventDispatcher.dispatch(`case.notopen`, this, {
+                ...baseMessage,
+                id: this.caseNickId(m.case, m.client),
+            } as BaseMessage);
+        });
+
+        this.onMatch(message, ["ez", "ezRev"], (m) => {
+            parsed = true;
+            EventDispatcher.dispatch(`case.ez`, this, {
+                ...baseMessage,
+                id: this.caseNickId(m.case, m.client),
+            } as BaseMessage);
+        });
+
+        this.onMatch(message, ["lsOff", "lsOffRev"], (m) => {
+            parsed = true;
+            EventDispatcher.dispatch(`case.ls`, this, {
+                ...baseMessage,
+                id: this.caseNickId(m.case, m.client),
+            } as BaseMessage);
         });
 
         if (!parsed) {

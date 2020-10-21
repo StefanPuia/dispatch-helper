@@ -40,6 +40,9 @@ export interface CaseCardState {
     prepLanguage?: string;
     lang: string;
     distanceToWaypoint?: string;
+    gameStatus: "OPEN" | "PG" | "SOLO" | "MM";
+    exclusionZone: boolean;
+    lifeSupport: boolean;
 }
 
 interface CaseRatState {
@@ -76,6 +79,9 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             unread: true,
             prep: false,
             lang: this.props.lang,
+            gameStatus: "OPEN",
+            exclusionZone: false,
+            lifeSupport: true,
         };
 
         this.closeCase = this.closeCase.bind(this);
@@ -107,6 +113,9 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.prepClientCR = this.prepClientCR.bind(this);
         this.setId = this.setId.bind(this);
         this.setClient = this.setClient.bind(this);
+        this.setNotOpen = this.setNotOpen.bind(this);
+        this.setExclusion = this.setExclusion.bind(this);
+        this.setLifeSupport = this.setLifeSupport.bind(this);
     }
 
     render() {
@@ -368,7 +377,18 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private changeState(
-        stateName: "active" | "cr" | "sysconf" | "system" | "platform" | "lang" | "client" | "id",
+        stateName:
+            | "active"
+            | "cr"
+            | "sysconf"
+            | "system"
+            | "platform"
+            | "lang"
+            | "client"
+            | "id"
+            | "gameStatus"
+            | "exclusionZone"
+            | "lifeSupport",
         data: BaseMessage,
         override?: any,
         useData?: boolean,
@@ -504,6 +524,18 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.changeState("platform", data, platform);
     }
 
+    private async setNotOpen(data: any) {
+        this.changeState("gameStatus", data, "SOLO");
+    }
+
+    private async setExclusion(data: any) {
+        this.changeState("exclusionZone", data, true);
+    }
+
+    private async setLifeSupport(data: any) {
+        this.changeState("lifeSupport", data, false);
+    }
+
     private async prepClient({ nick, language }: any) {
         if (!this.state.cr && this.state.nick.toLowerCase() === (nick || "").toLowerCase()) {
             this.setState({
@@ -558,6 +590,9 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             ["case.lang", this.setLang],
             ["case.changeid", this.setId],
             ["case.client", this.setClient],
+            ["case.notopen", this.setNotOpen],
+            ["case.ez", this.setExclusion],
+            ["case.ls", this.setLifeSupport],
         ];
     }
 

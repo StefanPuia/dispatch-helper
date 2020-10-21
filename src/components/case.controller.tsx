@@ -120,9 +120,9 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         if (existingCase && existingCase.state) {
             const oldState = existingCase.state;
             const currentCaseId = oldState.id !== newState.id ? newState.id : oldState.id;
-            const baseMessage: any = {
-                id: currentCaseId,
-            };
+            // const baseMessage: any = {
+            //     id: currentCaseId,
+            // };
             let caseChange: string[] = [];
             if (oldState.id !== newState.id) {
                 caseChange.push("ID");

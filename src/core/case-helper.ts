@@ -325,6 +325,18 @@ export default class CaseHelper {
             autoSpatch.push(dispatchFacts.BC());
         }
 
+        if (state.gameStatus !== "OPEN") {
+            autoSpatch.push(dispatchFacts.OPEN_PLAY());
+        }
+
+        if (state.exclusionZone && !state.cr) {
+            autoSpatch.push(dispatchFacts.SC_INFO());
+        }
+
+        if (!state.lifeSupport) {
+            autoSpatch.push(dispatchFacts.LIFE_SUPPORT());
+        }
+
         return autoSpatch;
     }
 

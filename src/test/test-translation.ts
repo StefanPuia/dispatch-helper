@@ -158,7 +158,7 @@ export default class TestTranslation {
         }
     }
 
-    private static genericHelper(): CaseCardState {
+    public static genericHelper(): CaseCardState {
         return {
             id: 0,
             client: "Client",
@@ -173,6 +173,9 @@ export default class TestTranslation {
             unread: true,
             prep: false,
             lang: "EN",
+            gameStatus: "SOLO",
+            exclusionZone: true,
+            lifeSupport: false,
         };
     }
 
