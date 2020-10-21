@@ -70,7 +70,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
     }
 
     private isMainChannel(log: Log) {
-        return typeof log.channel !== "undefined" && log.channel !== "#fuelrats" ? " *" : "";
+        return typeof log.channel !== "undefined" && log.channel !== "#fuelrats" ? " #" : "";
     }
 
     componentDidMount() {

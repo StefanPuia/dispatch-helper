@@ -110,7 +110,8 @@ export default class LogParser {
                 const isAction = message.text.match(LogParser.REGEX.ircAction);
                 if (isAction) {
                     message.type = "event";
-                    message.text = isAction[1] || "";
+                    message.text = `${message.user} ${isAction[1] || ""}`;
+                    message.user = "*";
                 }
                 EventDispatcher.dispatch("irc.message", this, message);
                 break;
