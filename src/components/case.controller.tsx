@@ -33,7 +33,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
 
     render() {
         return (
-            <div id="case-cards-wrapper">
+            <div id="case-cards-wrapper" className="main-ui-element">
                 <div id="case-cards">{this.state.cases}</div>
             </div>
         );
@@ -133,10 +133,10 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
             }
             if (oldState.cr !== newState.cr && newState.cr === true) {
                 caseChange.push("CR");
-                await EventDispatcher.dispatch("case.cr", this, {
-                    ...baseMessage,
-                    cr: newState.cr,
-                });
+                // await EventDispatcher.dispatch("case.cr", this, {
+                //     ...baseMessage,
+                //     cr: newState.cr,
+                // });
             }
             if (oldState.system !== newState.system) {
                 caseChange.push("system");

@@ -17,20 +17,20 @@ export interface DispatchSearchState {
 class DispatchSearch extends React.Component<DispatchSearchProps, DispatchSearchState> {
     private input: HTMLInputElement | null = null;
     private container: HTMLDivElement | null = null;
+    private currentFocus: number = 0;
 
     constructor(props: DispatchSearchProps) {
         super(props);
         this.state = { query: "", results: [] };
         this.search = this.search.bind(this);
         this.blur = this.blur.bind(this);
-        this.handleKeyUp = this.handleKeyUp.bind(this);
+        this.handleKey = this.handleKey.bind(this);
     }
     render() {
         return (
             <div id="dispatchSearch" ref={(el) => (this.container = el)}>
                 <input
                     onChange={this.search}
-                    onKeyUp={this.handleKeyUp}
                     ref={(el) => (this.input = el)}
                     type="text"
                     placeholder="[#] [plat] [lang] command [- params]"
@@ -42,6 +42,7 @@ class DispatchSearch extends React.Component<DispatchSearchProps, DispatchSearch
 
     private search(e: ChangeEvent) {
         if (this.input) {
+            this.currentFocus = 0;
             const query = this.input.value.trim();
             if (!query) {
                 this.setState({ results: [] });
@@ -134,11 +135,27 @@ class DispatchSearch extends React.Component<DispatchSearchProps, DispatchSearch
         EventDispatcher.dispatch("dispatch-search.blur", this, null);
     }
 
-    private handleKeyUp(e: any) {
+    private handleKey(e: any) {
         const event = e as KeyboardEvent;
-        if (event.key === "Escape") {
+        const results = document.querySelectorAll("#dispatchSearch > section > a.dispatch-search-result");
+        let focusItem: HTMLDivElement | undefined;
+        if (event.key === "ArrowDown") {
             event.preventDefault();
-            EventDispatcher.dispatch("dispatch-search.blur", this, null);
+            if (this.currentFocus < results.length - 1) {
+                this.currentFocus++;
+                focusItem = results[this.currentFocus] as HTMLDivElement;
+            }
+        }
+        if (event.key === "ArrowUp") {
+            event.preventDefault();
+            if (this.currentFocus > 0) {
+                this.currentFocus--;
+                focusItem = results[this.currentFocus] as HTMLDivElement;
+            }
+        }
+
+        if (focusItem) {
+            focusItem.focus();
         }
     }
 
@@ -146,10 +163,15 @@ class DispatchSearch extends React.Component<DispatchSearchProps, DispatchSearch
         return this.state.results.map((res) => {
             return (
                 <CopyToClipboard key={Utils.getUniqueKey("CopyToClipboard")} text={res.clipboard} onCopy={this.blur}>
-                    <div key={Utils.getUniqueKey("search-results-div")} title={res.clipboard}>
+                    <a
+                        href="#dispatchSearch"
+                        key={Utils.getUniqueKey("search-results-a")}
+                        className="dispatch-search-result"
+                        title={res.clipboard}
+                    >
                         <strong>{res.info}</strong>
                         <span>{res.clipboard}</span>
-                    </div>
+                    </a>
                 </CopyToClipboard>
             );
         });
@@ -170,6 +192,11 @@ class DispatchSearch extends React.Component<DispatchSearchProps, DispatchSearch
         if (this.input) {
             this.input.focus();
         }
+        window.addEventListener("keyup", this.handleKey);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("keyup", this.handleKey);
     }
 }
 

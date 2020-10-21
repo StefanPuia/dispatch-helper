@@ -35,6 +35,7 @@ class Chat extends React.Component<ChatProps, ChatState> {
         return (
             <div
                 id="chat"
+                className="main-ui-element"
                 style={{ overflowY: "scroll", gridArea: "chat" }}
                 ref={(el) => {
                     this.chatLog = el;

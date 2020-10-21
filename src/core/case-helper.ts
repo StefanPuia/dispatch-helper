@@ -193,7 +193,7 @@ export default class CaseHelper {
                     loopWaypoints(system, Config.getOwnRats(platform), closest);
                 }
                 if (!Config.onlyRats || !closest.waypoint) {
-                    loopWaypoints(system, CaseHelper.WAYPOINTS, closest);
+                    loopWaypoints(system, [...CaseHelper.WAYPOINTS, ...Config.getOwnRats(platform)], closest);
                 }
                 if (closest.waypoint) {
                     return `${closest.dist.toFixed(2)}LY to ${closest.waypoint.name}`;

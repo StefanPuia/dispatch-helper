@@ -84,9 +84,8 @@ class App extends React.Component<AppProps, AppState> {
             e.preventDefault();
             this.setState({ showOptions: true });
             return false;
-        } else if (e.key === "Escape" && this.state.showOptions) {
-            EventDispatcher.dispatch("options.blur", null, null);
-            EventDispatcher.dispatch("dispatch-search.blur", null, null);
+        } else if (e.key === "Escape") {
+            this.setState({ showSearch: false, showOptions: false });
         }
     }
 
@@ -118,6 +117,13 @@ class App extends React.Component<AppProps, AppState> {
     componentDidMount() {
         document.addEventListener(App.visibility.handle, this.handleFocus, false);
         document.addEventListener("keydown", this.handleKeyUp);
+        document.body.addEventListener("click", (e: MouseEvent) => {
+            if (e.target && (e.target as HTMLElement).classList.contains("main-ui-element")) {
+                if (this.state.showOptions || this.state.showSearch) {
+                    this.setState({ showOptions: false, showSearch: false });
+                }
+            }
+        });
         EventDispatcher.listen("dispatch-search.blur", this.handleSearchBlur);
         EventDispatcher.listen("options.blur", this.handleOptionsBlur);
         EventDispatcher.listen("mecha.status", this.handleMechaStatus);
