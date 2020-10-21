@@ -33,7 +33,7 @@ class Options extends React.Component<OptionsProps, OptionsState> {
                     </label>
                 </div>
                 <h3>Misc</h3>
-                <div>
+                <div className="option-block columns">
                     <label>
                         <input
                             type="checkbox"
@@ -45,6 +45,33 @@ class Options extends React.Component<OptionsProps, OptionsState> {
                         />
                         Mecha is down
                     </label>
+                    <div className="option-entry option-entry-radio">
+                        <span>Mark case as read on:</span>
+                        <label>
+                            <input
+                                type="radio"
+                                name="case_read-on-event"
+                                {...{ checked: Config.caseReadOnEvent === "mouseenter" }}
+                                onChange={(e) => {
+                                    Config.caseReadOnEvent = "mouseenter";
+                                    this.forceUpdate();
+                                }}
+                            />
+                            Mouseover
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name="case_read-on-event"
+                                {...{ checked: Config.caseReadOnEvent === "click" }}
+                                onChange={(e) => {
+                                    Config.caseReadOnEvent = "click";
+                                    this.forceUpdate();
+                                }}
+                            />
+                            Click
+                        </label>
+                    </div>
                 </div>
             </div>
         );

@@ -142,7 +142,7 @@ div#dispatchSearch > section > a > span {
 div#options {
     position: fixed;
     top: 5vh;
-    width: 580px;
+    min-width: 580px;
     height: auto;
     left: calc(calc(100vw - 580px) / 2);
     display: block;
@@ -151,6 +151,17 @@ div#options {
     z-index: var(--z-options);
     padding: 1em 2em;
     overflow-y: auto;
+}
+
+div#options div.option-block.columns {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+div#options div.option-entry.option-entry-radio {
+    display: flex;
+    flex-direction: row;
+    gap: 1ch;
 }
 
 div#mechaDownNotif {

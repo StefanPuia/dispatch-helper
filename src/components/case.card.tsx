@@ -3,6 +3,7 @@ import React from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
 
 import CaseHelper from "../core/case-helper";
+import Config from "../core/config";
 import { EventDispatcher } from "../core/event.dispatcher";
 import { BaseMessage, Callout, CalloutJumps, CaseAssign, NickChange } from "../core/log.parser";
 import Utils from "../core/utils";
@@ -54,13 +55,12 @@ interface CaseRatState {
         bc?: boolean;
         fuel?: boolean;
     };
+    limpet?: number;
 }
 
 type RatState = "fr" | "wr" | "bc" | "fuel";
 
 class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
-    private firstRat: string = "";
-    private container: HTMLDivElement | null = null;
     private mounted = false;
 
     constructor(props: CaseCardProps) {
@@ -116,6 +116,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.setNotOpen = this.setNotOpen.bind(this);
         this.setExclusion = this.setExclusion.bind(this);
         this.setLifeSupport = this.setLifeSupport.bind(this);
+        this.setRead = this.setRead.bind(this);
     }
 
     render() {
@@ -134,12 +135,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                     Utils.ternary(this.state.cr, "code-red"),
                     Utils.ternary(this.state.unread, "case-unread"),
                 ].join(" ")}
-                onClick={(e: React.MouseEvent) => {
-                    if (this.state.unread) {
-                        this.updateState({ unread: { $set: false } });
-                    }
-                }}
-                ref={(el) => (this.container = el)}
+                onMouseEnter={this.setRead}
+                onClick={this.setRead}
             >
                 <div className="case-card-header">
                     <div
@@ -235,7 +232,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                     color: this.state.rats[rat].assigned ? "green" : "",
                 }}
             >
-                {rat} {rat === this.firstRat ? "*" : ""}
+                {rat} {this.state.rats[rat].limpet === 0 ? "*" : ""}
             </span>
         );
     }
@@ -320,9 +317,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             for (const key of ["fr", "wr", "bc"]) {
                 rats[data.rat].state[key as RatState] = undefined;
             }
-            if (!this.firstRat) {
-                this.firstRat = data.rat;
-            }
+            rats[data.rat].limpet = Object.keys(rats).filter((rat) => rats[rat].state.fuel).length - 1;
         }
         this.updateState({
             rats: { $set: rats },
@@ -433,6 +428,12 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
                 rats: { $set: rats },
                 unread: { $set: true },
             });
+        }
+    }
+
+    private setRead(e: React.MouseEvent) {
+        if (this.state.unread && e.type === Config.caseReadOnEvent) {
+            this.updateState({ unread: { $set: false } });
         }
     }
 

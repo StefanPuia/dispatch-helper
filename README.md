@@ -57,6 +57,7 @@ Preview:
 -   allows you to save your rats and their systems, so you can see the distance from the client to them, instead of the waypoints
 -   toggle between showing distances to a mix of rat + waypoints and only rats
 -   manual Mecha-down toggle
+-   mark cases as read by clicking on them or hovering
 
 ## Installation
 

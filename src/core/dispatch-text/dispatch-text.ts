@@ -61,7 +61,7 @@ export default abstract class DispatchTextBase {
 
     public getClose() {
         if (!Config.mechaDown) {
-            return `!close ${this.state.id} ${this.getFuelRats()[0] || ""}`;
+            return `!close ${this.state.id} ${this.getFirstLimpet() || ""}`;
         }
         return "";
     }
@@ -106,6 +106,11 @@ export default abstract class DispatchTextBase {
 
     public getFuelRats() {
         return this.getAssignedRats().filter((rat) => this.state.rats[rat] && this.state.rats[rat].state.fuel === true);
+    }
+
+    public getFirstLimpet() {
+        console.log(this.state.rats);
+        return this.getAssignedRats().find((rat) => this.state.rats[rat].limpet === 0);
     }
 
     public getBCRats() {

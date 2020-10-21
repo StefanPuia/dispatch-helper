@@ -105,6 +105,15 @@ export default class Config {
         localStorage.mechaDown = value;
         EventDispatcher.dispatch("mecha.status", this, value);
     }
+
+    public static get caseReadOnEvent(): "mouseenter" | "click" {
+        return localStorage["case.read-on-event"] || Config.get("case.read-on-event") || "click";
+    }
+
+    public static set caseReadOnEvent(value: "mouseenter" | "click") {
+        Config.set("case.read-on-event", value);
+        localStorage["case.read-on-event"] = value;
+    }
 }
 
 declare global {

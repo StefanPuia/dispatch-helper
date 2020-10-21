@@ -34,7 +34,9 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
     render() {
         return (
             <div id="case-cards-wrapper" className="main-ui-element">
-                <div id="case-cards">{this.state.cases}</div>
+                <div id="case-cards" className="main-ui-element">
+                    {this.state.cases}
+                </div>
             </div>
         );
     }
