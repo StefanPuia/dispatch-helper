@@ -17,8 +17,8 @@ export default class LogParser {
         wrRev: /(?:wr|wing)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
         bc: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:bc|wb|beacon)\s*(?<status>\+|-)/i,
         bcRev: /(?:bc|wb|beacon)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
-        stdn: /(?:(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?)?(?:stnd|stdn|standing down|nvm|nevermind)/i,
-        stdnRev: /(?:stnd|stdn|standing down|nvm|nevermind)(?:.*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)))?/i,
+        stdn: /(?:(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?)?(?:stnd|stdn|standing down)/i,
+        stdnRev: /(?:stnd|stdn|standing down)(?:.*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)))?/i,
         fuel: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:feul|fule|fuel|fl)\s*(?<status>\+|-)/i,
         fuelRev: /(?:feul|fule|fuel|fl)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
         notOpen: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:solo|pg|private|sg)/i,
@@ -47,7 +47,7 @@ export default class LogParser {
             "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+?)" +
                 "(?: \\((?:(?:\\d[\\d.]+ LY from .+?)|(?<sysconf>.+?))\\))?" +
                 " - Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK)" +
-                "(?: Language: .+? \\((?<lang>.+?)\\))?\\s+" +
+                "(?: - Language: .+? \\((?<lang>.+?)\\))?\\s+" +
                 "\\(Case #(?<case>\\d+)\\)",
             "i"
         ),
