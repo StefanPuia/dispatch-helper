@@ -25,8 +25,8 @@ export default class LogParser {
         notOpenRev: /(?:solo|pg|private|sg).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
         ez: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:ez|exclusion|(?:too?\s*close))/i,
         ezRev: /(?:ez|exclusion|(?:too?\s*close)).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
-        lsOff: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:ls|(?:life\s*support)\s*off?)/i,
-        lsOffRev: /(?:ls|(?:life\s*support)\s*off?).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
+        lsOff: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:(?:ls|life\s*support)\s*off?)/i,
+        lsOffRev: /(?:(?:ls|life\s*support)\s*off?).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
         sysconf: /#?(?<case>\d+).*?(?:(?:sysconf)|(?:sys conf)|(?:system confirmed))/i,
         sysconfRev: /(?:sysconf|system confirmed).*?#?(?<case>\d+)/i,
 
