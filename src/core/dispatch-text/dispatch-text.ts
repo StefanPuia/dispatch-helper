@@ -109,7 +109,6 @@ export default abstract class DispatchTextBase {
     }
 
     public getFirstLimpet() {
-        console.log(this.state.rats);
         return this.getAssignedRats().find((rat) => this.state.rats[rat].limpet === 0);
     }
 
