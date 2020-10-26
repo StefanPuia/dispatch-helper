@@ -284,8 +284,9 @@ export default class LogParser {
                     cr: m.oxygen === "NOT OK",
                     // lang: Utils.getLangFromLocale(m.lang),
                     nick: m.nick || Utils.sanitizeNickname(m.client),
+                    ratsignal: true,
                 } as NewCase);
-            }, 1000);
+            }, 200);
         });
 
         this.onMatch(message, "platform", (m) => {
@@ -488,6 +489,7 @@ export interface NewCase extends BaseMessage {
     lang: string;
     nick: string;
     id: number;
+    ratsignal?: boolean;
 }
 
 export interface Callout extends BaseMessage {

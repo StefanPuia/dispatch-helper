@@ -120,18 +120,21 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
             ({ state }) => state && state.client === newState.client
         );
         if (existingCase && existingCase.state) {
+            const ratsignal = newState.ratsignal === true;
             const oldState = existingCase.state;
             const currentCaseId = oldState.id !== newState.id ? newState.id : oldState.id;
-            // const baseMessage: any = {
-            //     id: currentCaseId,
-            // };
+            const baseMessage: any = {
+                id: currentCaseId,
+            };
             let caseChange: string[] = [];
             if (oldState.id !== newState.id) {
                 caseChange.push("ID");
-                await EventDispatcher.dispatch("case.changeid", this, {
-                    id: oldState.id,
-                    newId: newState.id,
-                });
+                if (ratsignal) {
+                    await EventDispatcher.dispatch("case.changeid", this, {
+                        id: oldState.id,
+                        newId: newState.id,
+                    });
+                }
             }
             if (oldState.cr !== newState.cr && newState.cr === true) {
                 caseChange.push("CR");
@@ -142,10 +145,12 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
             }
             if (oldState.system !== newState.system) {
                 caseChange.push("system");
-                // await EventDispatcher.dispatch("case.sys", this, {
-                //     ...baseMessage,
-                //     sys: newState.system,
-                // });
+                if (ratsignal) {
+                    await EventDispatcher.dispatch("case.sys", this, {
+                        ...baseMessage,
+                        sys: newState.system,
+                    });
+                }
             }
             if (oldState.sysconf !== newState.sysconf) {
                 caseChange.push("sysconf");

@@ -14,6 +14,9 @@ export default abstract class DispatchTextBase {
     }
 
     protected consolize(fact: string): string {
+        if (["wing", "beacon", "fr", "quit", "modules"].includes(fact)) {
+            return fact;
+        }
         switch (this.state.platform) {
             case "PC":
                 return `pc${fact}`;
