@@ -27,7 +27,7 @@ export default class DispatchTextES extends DispatchTextBase {
     }
 
     public getEnglishCheck() {
-        return `¿${this.state.nick} hablas inglés?`;
+        return `¿ ${this.state.nick} hablas inglés?`;
     }
 
     public getWelcome() {

@@ -59,6 +59,7 @@ export default class LogParser {
             "i"
         ),
         sysCase: /^System for case #(?<case>\d+) .+? has been changed to "(?<system>.+?)"/i,
+        sysAutoCorrect: /^System for case #(?<case>\d+) \(.+?\) has been automatically corrected to "(?<system>.+?)" \(.+/i,
 
         // other
         // eslint-disable-next-line no-control-regex
@@ -365,7 +366,7 @@ export default class LogParser {
             }
         });
 
-        this.onMatch(message, "sysCase", (m) => {
+        this.onMatch(message, ["sysCase", "sysAutoCorrect"], (m) => {
             parsed = true;
             EventDispatcher.dispatch(`case.sys`, this, {
                 ...baseMessage,
