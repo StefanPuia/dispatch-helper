@@ -47,7 +47,7 @@ export default class LogParser {
             "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+?)" +
                 "(?: \\((?:(?:\\d[\\d.]+ LY from .+?)|(?<sysconf>.+?))\\))?" +
                 " - Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK)" +
-                "(?: - Language: .+? \\((?<lang>.+?)\\))?\\s+" +
+                "(?: - Language: .+ \\((?<lang>.+?)\\))?\\s+" +
                 "\\(Case #(?<case>\\d+)\\)",
             "i"
         ),

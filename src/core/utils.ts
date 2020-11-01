@@ -33,7 +33,10 @@ export default class Utils {
     }
 
     public static cleanSystemName(system: string): string {
-        return system.trim().replace(/(?:^system\s*)|(?:\s*system$)/gi, "");
+        return (system || "")
+            .trim()
+            .replace(/(?:^system\s*)|(?:\s*system$)/gi, "")
+            .toUpperCase();
     }
 
     public static async getEDSMSystem(systemName: string): Promise<EDSMSystem> {
@@ -46,6 +49,11 @@ export default class Utils {
     }
 
     private static async getSystemFromEDSMApi(systemName: string): Promise<EDSMSystem> {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => {
+            controller.abort();
+        }, 500);
+
         const res = await fetch("https://www.edsm.net/api-v1/system", {
             method: "POST",
             headers: {
@@ -55,7 +63,9 @@ export default class Utils {
                 showCoordinates: 1,
                 systemName: systemName,
             }),
+            signal: controller.signal,
         });
+        clearTimeout(timeout);
         const system = await res.json();
         if (system && system.name) {
             DatabaseUtil.storeEDSMSystem(system);
