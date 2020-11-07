@@ -64,7 +64,6 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         const client = CaseController.getClientForCaseNumber(data.id);
         const index = this.state.cases.findIndex((c: JSX.Element) => c.props.client === client);
         if (index > -1) {
-            if (data.rat && !CaseController.caseData[data.id].state?.rats[data.rat]) return;
             delete CaseController.caseData[data.id];
             this.setState(
                 update(this.state, {
@@ -173,7 +172,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
                 //     lang: newState.lang,
                 // });
             }
-            if (caseChange.length) {
+            if (newState.ratsignal !== true && caseChange.length) {
                 Utils.sendMessage(
                     "SYSTEM",
                     `<span style="color: red">Incoming signal made changes to #${currentCaseId} (${caseChange.join(
