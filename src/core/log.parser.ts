@@ -287,7 +287,7 @@ export default class LogParser {
                     nick: m.nick || Utils.sanitizeNickname(m.client),
                     ratsignal: true,
                 } as NewCase);
-            }, 200);
+            }, 500);
         });
 
         this.onMatch(message, "platform", (m) => {

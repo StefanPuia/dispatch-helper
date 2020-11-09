@@ -1,4 +1,15 @@
 {
     "editor.formatOnSave": true,
-    "prettier.printWidth": 120
+    "prettier.printWidth": 120,
+    "cSpell.words": [
+        "EDSM",
+        "Mecha",
+        "callout",
+        "changeid",
+        "newcase",
+        "ratsignal",
+        "sysconf",
+        "updatecase",
+        "waypoint"
+    ]
 }

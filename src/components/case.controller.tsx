@@ -52,9 +52,6 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
                 if (A.state.active > B.state.active) return -1;
                 if (A.state.cr < B.state.cr) return 1;
                 if (A.state.cr > B.state.cr) return -1;
-            } else {
-                if (a.props.cr < b.props.cr) return 1;
-                if (a.props.cr > b.props.cr) return -1;
             }
         }
         return a.props.created.getTime() - b.props.created.getTime();

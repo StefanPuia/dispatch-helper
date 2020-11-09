@@ -521,9 +521,11 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private async setPlatform(data: any) {
+        if (data.id !== this.state.id) return;
         let platform = data.platform.toUpperCase();
         if (platform === "PS") platform = "PS4";
         this.changeState("platform", data, platform);
+        this.getWaypointDistance();
     }
 
     private async setNotOpen(data: any) {
