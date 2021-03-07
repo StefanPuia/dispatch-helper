@@ -52,7 +52,7 @@ export default class Utils {
         const controller = new AbortController();
         const timeout = setTimeout(() => {
             controller.abort();
-        }, 1000);
+        }, 2000);
 
         const res = await fetch("https://www.edsm.net/api-v1/system", {
             method: "POST",

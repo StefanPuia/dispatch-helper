@@ -1,6 +1,7 @@
 import "./App.css";
 import "./core/config";
 import "./test/case-stats";
+import "./test/test-dispatch";
 
 import React from "react";
 
@@ -14,6 +15,7 @@ import { IRCReader } from "./core/irc.reader";
 import LogParser from "./core/log.parser";
 import Utils from "./core/utils";
 import Config from "./core/config";
+import TestDispatch from "./test/test-dispatch";
 
 export interface AppProps {}
 
@@ -129,19 +131,23 @@ class App extends React.Component<AppProps, AppState> {
         EventDispatcher.listen("mecha.status", this.handleMechaStatus);
         Config.mechaDown = !!Config.mechaDown;
 
-        window.onbeforeunload = function (e: any) {
-            e = e || window.event;
-            const confirm = "Are you sure you want to exit?";
-            // For IE and Firefox prior to version 4
-            if (e) {
-                e.returnValue = confirm;
-            }
-            // For Safari
-            return confirm;
-        };
+        // window.onbeforeunload = function (e: any) {
+        //     e = e || window.event;
+        //     const confirm = "Are you sure you want to exit?";
+        //     // For IE and Firefox prior to version 4
+        //     if (e) {
+        //         e.returnValue = confirm;
+        //     }
+        //     // For Safari
+        //     return confirm;
+        // };
 
         LogParser.init();
         IRCReader.init();
+
+        // setTimeout(async () => {
+        //     TestDispatch.test(100, 10, 1, 100, true);
+        // }, 200);
     }
 }
 

@@ -141,12 +141,16 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
             }
             if (oldState.system !== newState.system) {
                 caseChange.push("system");
-                if (ratsignal) {
-                    await EventDispatcher.dispatch("case.sys", this, {
-                        ...baseMessage,
-                        sys: newState.system,
-                    });
-                }
+                Utils.getEDSMSystem(newState.system)
+                    .then(async (system) => {
+                        if (system) {
+                            await EventDispatcher.dispatch("case.sys", this, {
+                                ...baseMessage,
+                                sys: newState.system,
+                            });
+                        }
+                    })
+                    .catch((err) => EventDispatcher.dispatch("error", this, err));
             }
             if (oldState.sysconf !== newState.sysconf) {
                 caseChange.push("sysconf");
@@ -180,6 +184,7 @@ class CaseController extends React.Component<CaseControllerProps, CaseController
         } else {
             EventDispatcher.dispatch("callout.newcase", this, newState);
         }
+        this.forceUpdate();
     }
 
     componentDidMount() {

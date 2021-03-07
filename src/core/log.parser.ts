@@ -17,8 +17,8 @@ export default class LogParser {
         wrRev: /(?:wr|wing)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
         bc: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:bc|wb|beacon)\s*(?<status>\+|-)/i,
         bcRev: /(?:bc|wb|beacon)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
-        stdn: /(?:(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?)?(?:stnd|stdn|standing down)/i,
-        stdnRev: /(?:stnd|stdn|standing down)(?:.*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)))?/i,
+        stdn: /(?:(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?)?(?:stnd|stdn|stand(?:ing)? down)/i,
+        stdnRev: /(?:stnd|stdn|stand(?:ing)? down)(?:.*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)))?/i,
         fuel: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:feul|fule|fuel|fl)\s*(?<status>\+|-)/i,
         fuelRev: /(?:feul|fule|fuel|fl)\s*(?<status>\+|-).*?(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+))/i,
         notOpen: /(?:(?:(?:#|case)?\s*(?<case>\d+))|(?<client>[\w_]+)).*?(?:solo|pg|private|sg)/i,
@@ -32,19 +32,19 @@ export default class LogParser {
 
         // commands
         closed: /^!(?:close|clear)\s+(?:(?<case>\d+)|(?<client>[\w_]+))(?:\s+(?<rat>.+))?/i,
-        assign: /^!(?:go|assign|add)(?:-\w{2})?\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<rats>.+)/i,
+        assign: /^!(?:go|assign|add|gofr|frgo|assignfr)(?:-\w{2})?\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<rats>.+)/i,
         unassign: /^!(?:unassign|deassign|remove|rm|standdown)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<rats>.+)/i,
         active: /^!(?:active|activate|inactive|deactivate)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
         md: /^!(?:md|trash)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+.+/i,
         cr: /^!(?:cr|codered|casered)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
         sys: /^!(?:sys|system|loc|location)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<system>.+)/i,
-        prep: /^!(?<prepType>(?:prep|pcquit|psquit|xquit))(?:-(?<language>\S+))?\s(?<nick>\S+)/i,
+        prep: /^!(?<prepType>(?:prep|pcquit|psquit|xquit|prepcr))(?:-(?<language>\S+))?\s(?<nick>\S+)/i,
         nick: /^!(?:nick|nickname|ircnick)\s+(?:(?<case>\d+)|(?<client>[\w_]+))\s+(?<newnick>.+)/i,
-        platform: /^!(?<platform>xb|ps|pc)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
+        platform: /^!(?<platform>xb|ps|ps4|ps5|pc)\s+(?:(?<case>\d+)|(?<client>[\w_]+))/i,
 
         // bots
         ratsignal: new RegExp(
-            "RATSIGNAL - CMDR (?<client>.+?) - Reported System: (?<system>.+?)" +
+            'RATSIGNAL - CMDR (?<client>.+?) - Reported System: "(?<system>.+?)"' +
                 "(?: \\((?:(?:\\d[\\d.]+ LY from .+?)|(?<sysconf>.+?))\\))?" +
                 " - Platform: (?<platform>\\w+) - O2: (?<oxygen>OK|NOT OK)" +
                 "(?: - Language: .+ \\((?<lang>.+?)\\))?\\s+" +
@@ -56,6 +56,12 @@ export default class LogParser {
                 " - Platform: (?<platform>.+?) - O2: (?<oxygen>OK|NOT OK)" +
                 " - Language: .+? \\((?<lang>.+?)\\)" +
                 "(?: - IRC Nickname: (?<nick>\\S+))?",
+            "i"
+        ),
+        manualRatsignal: new RegExp(
+            "^Received R@TSIGNAL from (?<client>.+)\\. " +
+                'Calling all available rats for .+? case in \\"(?<system>.+?)\\"' +
+                " .+ \\(Case #(?<case>\\d+)\\)",
             "i"
         ),
         sysCase: /^System for case #(?<case>\d+) .+? has been changed to "(?<system>.+?)"/i,

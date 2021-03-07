@@ -90,11 +90,11 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.handleAssign = this.handleAssign.bind(this);
         this.handleCaseAssign = this.handleCaseAssign.bind(this);
         this.handleConnect = this.handleConnect.bind(this);
-        this.handleDisonnect = this.handleDisonnect.bind(this);
+        this.handleDisconnect = this.handleDisconnect.bind(this);
         this.handleJumpCall = this.handleJumpCall.bind(this);
         this.handleNickChange = this.handleNickChange.bind(this);
         this.handleStandDown = this.handleStandDown.bind(this);
-        this.handleUnssign = this.handleUnssign.bind(this);
+        this.handleUnassign = this.handleUnassign.bind(this);
         this.setBcMinus = this.setBcMinus.bind(this);
         this.setBcPlus = this.setBcPlus.bind(this);
         this.setCaseActive = this.setCaseActive.bind(this);
@@ -221,8 +221,8 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     }
 
     private renderRatJumps(rat: string) {
-        const { jumps, assigned } = this.state.rats[rat];
-        return jumps !== undefined && !assigned ? ` - ${jumps}j` : "";
+        const { jumps } = this.state.rats[rat];
+        return jumps !== undefined ? ` - ${jumps}j` : "";
     }
 
     private renderRatName(rat: string) {
@@ -475,7 +475,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.handleConnectDisconnect(true, data);
     }
 
-    private async handleDisonnect(data: BaseMessage) {
+    private async handleDisconnect(data: BaseMessage) {
         this.handleConnectDisconnect(false, data);
     }
 
@@ -483,7 +483,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
         this.handleCaseAssign(true, data);
     }
 
-    private async handleUnssign(data: CaseAssign) {
+    private async handleUnassign(data: CaseAssign) {
         this.handleCaseAssign(false, data);
     }
 
@@ -523,7 +523,7 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
     private async setPlatform(data: any) {
         if (data.id !== this.state.id) return;
         let platform = data.platform.toUpperCase();
-        if (platform === "PS") platform = "PS4";
+        if (["PS", "PS4", "PS5"].includes(platform)) platform = "PS4";
         this.changeState("platform", data, platform);
         this.getWaypointDistance();
     }
@@ -578,9 +578,9 @@ class CaseCard extends React.Component<CaseCardProps, CaseCardState> {
             ["callout.fuel+", this.setFuel],
             ["callout.jumps", this.handleJumpCall],
             ["case.connect", this.handleConnect],
-            ["case.disconnect", this.handleDisonnect],
+            ["case.disconnect", this.handleDisconnect],
             ["case.assign", this.handleAssign],
-            ["case.unassign", this.handleUnssign],
+            ["case.unassign", this.handleUnassign],
             ["callout.stdn", this.handleStandDown],
             ["case.active", this.setCaseActive],
             ["case.cr", this.setCaseCR],
